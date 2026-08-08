@@ -10,72 +10,101 @@
 <meta property="og:image" content="og-image.png">
 <style>
   :root{
-    --bg:#f6f4ef;
-    --card:#ffffff;
-    --line:#e7e2d8;
-    --ink:#2b2a26;
-    --muted:#8b877e;
-    --teal:#1e857a;
-    --teal-soft:#e3f0ee;
+    --bg:#0b0e13;
+    --glass:rgba(255,255,255,0.055);
+    --glass-strong:rgba(255,255,255,0.09);
+    --stroke:rgba(242,239,232,0.14);
+    --stroke-bright:rgba(242,239,232,0.30);
     --amber:#ee8c12;
-    --amber-soft:#fdeeda;
-    --shadow:0 10px 30px rgba(80,65,40,.10);
-    --radius:16px;
+    --teal:#2cc4b2;
+    --teal-bright:#3ad6c6;
+    --teal-dim:#1e857a;
+    --paper:#f2efe8;
+    --paper-dim:#a5a19a;
+    --card-shadow:0 10px 34px rgba(0,0,0,.38);
+    --glass-blur:blur(16px) saturate(150%);
     --mono: ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;
     --sans: -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;color:var(--ink);font-family:var(--sans);}
-  body{background:
-    radial-gradient(900px 500px at 88% -10%, rgba(238,140,18,.07), transparent 60%),
-    radial-gradient(1000px 640px at -12% 34%, rgba(30,133,122,.08), transparent 60%),
-    var(--bg);}
-  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--paper);font-family:var(--sans);}
+  :focus-visible{outline:2px solid var(--teal-bright);outline-offset:2px;}
+  
+  .bg-orbs{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;}
+  .orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.45;}
+  .o1{width:540px;height:540px;background:#0f5f56;top:-160px;left:-140px;animation:drift1 26s ease-in-out infinite alternate;}
+  .o2{width:480px;height:480px;background:#8a4d0f;top:28%;right:-180px;animation:drift2 32s ease-in-out infinite alternate;}
+  .o3{width:400px;height:400px;background:#16324f;bottom:-160px;left:32%;animation:drift3 28s ease-in-out infinite alternate;}
+  @keyframes drift1{from{transform:translate(0,0) scale(1);}to{transform:translate(130px,70px) scale(1.15);}}
+  @keyframes drift2{from{transform:translate(0,0) scale(1.1);}to{transform:translate(-150px,-50px) scale(.95);}}
+  @keyframes drift3{from{transform:translate(0,0) scale(.95);}to{transform:translate(100px,-80px) scale(1.1);}}
+  @media (prefers-reduced-motion: reduce){ .orb{animation:none;} }
+  
   .app{max-width:1080px;margin:0 auto;padding:32px 24px 60px;}
 
-  .app-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:6px 4px 18px;}
-  .overline{margin:0 0 6px;font-family:var(--mono);font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal);}
-  h1{font-size:1.5rem;font-weight:700;letter-spacing:-0.01em;margin:0 0 6px;color:var(--ink);}
-  .subtitle{margin:0;color:var(--muted);font-size:0.8rem;font-family:var(--mono);}
-  .brand-rule{height:2px;border-radius:1px;margin:0 0 24px;background:linear-gradient(90deg,var(--teal),var(--amber));opacity:.85;}
-  .master-vol{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow);}
-  .master-vol label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:var(--mono);}
+  .app-header,.controls-row,.info-row,.viz,.footer-glass{
+    background:var(--glass);
+    -webkit-backdrop-filter:var(--glass-blur);
+    backdrop-filter:var(--glass-blur);
+    border:1px solid var(--stroke);
+    border-radius:16px;
+    box-shadow:var(--card-shadow), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  @supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
+    .app-header,.controls-row,.info-row,.viz,.footer-glass{background:rgba(23,26,32,.92);}
+  }
 
-  .app-footer{display:flex;justify-content:center;margin-top:40px;padding-top:24px;border-top:1px solid var(--line);}
-  .brand-logo{height:150px;width:auto;display:block;border-radius:18px;box-shadow:var(--shadow), 0 0 0 1px var(--line);}
+  .app-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:18px 20px;}
+  .overline{margin:0 0 6px;font-family:var(--mono);font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-bright);}
+  h1{
+    font-size:1.5rem;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    margin:0 0 6px;
+    background:linear-gradient(90deg,var(--paper) 30%,var(--teal-bright));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .subtitle{margin:0;color:var(--paper-dim);font-size:0.8rem;font-family:var(--mono);}
+  .brand-rule{height:2px;border-radius:1px;margin:0 0 24px;background:linear-gradient(90deg,var(--teal-dim),var(--amber));box-shadow:0 0 14px rgba(238,140,18,.35);}
+  .master-vol{display:flex;align-items:center;gap:10px;background:var(--glass-strong);border:1px solid var(--stroke);border-radius:12px;padding:10px 14px;}
+  .master-vol label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--paper-dim);font-family:var(--mono);}
 
-  .caption{color:var(--muted);font-size:0.95rem;line-height:1.6;max-width:700px;margin:0 0 22px;}
-  .caption em{color:var(--ink);font-style:normal;font-weight:600;}
+  .app-footer{display:flex;justify-content:center;margin-top:40px;padding-top:24px;}
+  .brand-logo{height:150px;width:auto;display:block;border-radius:18px;box-shadow:var(--card-shadow), 0 0 0 1px var(--stroke);}
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .caption{color:var(--paper-dim);font-size:0.95rem;line-height:1.6;max-width:700px;margin:0 0 22px;}
+  .caption em{color:var(--paper);font-style:normal;font-weight:600;}
+
   .controls-row{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:12px;padding:18px 20px;}
   .info-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px;padding:12px 16px;}
-  .info-row .info-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-family:var(--mono);margin-right:6px;}
+  .info-row .info-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--paper-dim);font-family:var(--mono);margin-right:6px;}
 
   .btn-group{display:flex;gap:8px;flex-wrap:wrap;}
-  .shape-btn{background:var(--card);border:1px solid var(--line);color:var(--muted);padding:9px 16px;border-radius:999px;font-size:0.78rem;font-family:var(--mono);cursor:pointer;transition:all .15s;}
-  .shape-btn:hover{color:var(--ink);border-color:var(--teal);}
-  .shape-btn.active{color:#fff;background:var(--teal);border-color:var(--teal);font-weight:700;box-shadow:0 6px 16px rgba(30,133,122,.28);}
+  .shape-btn{background:var(--glass-strong);border:1px solid var(--stroke);color:var(--paper-dim);padding:9px 16px;border-radius:999px;font-size:0.78rem;font-family:var(--mono);cursor:pointer;transition:all .15s;}
+  .shape-btn:hover{color:var(--paper);border-color:var(--teal);}
+  .shape-btn.active{color:#fff;background:var(--teal);border-color:var(--teal);font-weight:700;box-shadow:0 6px 16px rgba(44,196,178,.28);}
 
   .slider-group{display:flex;flex-direction:column;gap:8px;min-width:170px;flex:1;}
-  .slider-group .label-row{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);font-family:var(--mono);}
+  .slider-group .label-row{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--paper-dim);font-family:var(--mono);}
   .slider-group .val{color:var(--amber);font-weight:700;}
-  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:#e3ddd2;border-radius:2px;outline:none;}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--teal);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 8px rgba(30,133,122,.35);}
-  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--teal);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 8px rgba(30,133,122,.35);}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:rgba(255,255,255,.14);border-radius:2px;outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--teal-bright);cursor:pointer;border:3px solid rgba(255,255,255,.35);box-shadow:0 2px 8px rgba(58,214,198,.35);}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--teal-bright);cursor:pointer;border:3px solid rgba(255,255,255,.35);box-shadow:0 2px 8px rgba(58,214,198,.35);}
 
-  .play-btn{background:var(--teal);color:#fff;border:none;padding:12px 24px;border-radius:999px;font-size:0.78rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 6px 16px rgba(30,133,122,.28);}
-  .play-btn:hover{filter:brightness(1.08);}
+  .play-btn{background:rgba(44,196,178,.16);color:#c8fdf5;border:1px solid rgba(44,196,178,.5);padding:12px 24px;border-radius:999px;font-size:0.78rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;cursor:pointer;transition:all .15s;}
+  .play-btn:hover{background:rgba(44,196,178,.3);}
   .play-btn:active{transform:scale(0.97);}
-  .play-btn.fire{background:var(--amber);box-shadow:0 6px 16px rgba(238,140,18,.3);}
+  .play-btn.fire{background:rgba(238,140,18,.18);border-color:rgba(238,140,18,.55);color:#ffe1b8;}
+  .play-btn.fire:hover{background:rgba(238,140,18,.32);}
 
-  .readout{font-family:var(--mono);font-size:0.78rem;color:var(--ink);background:#faf8f4;border:1px solid var(--line);padding:9px 14px;border-radius:10px;}
+  .readout{font-family:var(--mono);font-size:0.78rem;color:var(--paper);background:rgba(11,14,19,.45);border:1px solid var(--stroke);padding:9px 14px;border-radius:10px;}
   .readout .hi{color:var(--amber);font-weight:700;}
 
   .viz{padding:16px 18px;margin-bottom:14px;}
-  .viz h4{margin:0 0 12px;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;font-family:var(--mono);}
-  canvas{width:100%;height:360px;display:block;border-radius:12px;background:
-    linear-gradient(180deg,#fbf9f5 0%,#f4efe6 100%);border:1px solid var(--line);}
+  .viz h4{margin:0 0 12px;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--paper-dim);font-weight:600;font-family:var(--mono);}
+  canvas{width:100%;height:360px;display:block;border-radius:12px;background:rgba(11,14,19,.35);border:1px solid var(--stroke);}
 
   @media (max-width:640px){
     .controls-row{flex-direction:column;align-items:stretch;}
@@ -85,6 +114,7 @@
 </style>
 </head>
 <body>
+<div class="bg-orbs" aria-hidden="true"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span></div>
 <div class="app">
   <header class="app-header">
     <div>
@@ -101,7 +131,7 @@
 
   <p class="caption">Place your monitors and mix position, then treat the points where sound <em>actually</em> bounces — the mirror points on the side walls and ceiling. Panels go where the reflections happen, not randomly on empty wall. The stereo test lets you hear an off-centre couch shift the image; the reflection test lets you hear a side panel eat the slap.</p>
 
-  <div class="card controls-row">
+  <div class="controls-row">
     <div class="slider-group">
       <div class="label-row"><span>Room width</span><span class="val" id="ssWVal">3.0 m</span></div>
       <input type="range" id="ssW" min="2" max="5" step="0.1" value="3" aria-label="Room width">
@@ -124,7 +154,7 @@
     </div>
   </div>
 
-  <div class="card controls-row">
+  <div class="controls-row">
     <div class="btn-group" id="ssPanels">
       <button class="shape-btn active" data-p="side">Side panels @ mirror points</button>
       <button class="shape-btn" data-p="cloud">Ceiling cloud</button>
@@ -136,7 +166,7 @@
     <button class="play-btn fire" id="ssRefl">⚡ Hear 1st reflection</button>
   </div>
 
-  <div class="card info-row">
+  <div class="info-row">
     <span class="info-label">Display</span>
     <div class="readout">stereo angle = <span class="hi" id="ssAngle">60°</span></div>
     <div class="readout">L–R arrival Δ = <span class="hi" id="ssDelta">0.00 ms</span></div>
@@ -144,13 +174,13 @@
     <div class="readout">axial modes (L/W/H) = <span class="hi" id="ssModes">43 / 57 / 71 Hz</span></div>
   </div>
 
-  <div class="card viz">
+  <div class="viz">
     <h4>Top-down view · dashed = first-reflection paths · orange = treatment</h4>
     <canvas id="cvStudio"></canvas>
   </div>
 
   <footer class="app-footer">
-    <img class="brand-logo" src="yell-logo.png" alt="Yell Entertainment — Your Sound, Your Story!!">
+    <img class="brand-logo footer-glass" src="yell-logo.png" alt="Yell Entertainment — Your Sound, Your Story!!">
   </footer>
 </div>
 
