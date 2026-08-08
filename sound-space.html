@@ -5,97 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sound & Space — Yell Entertainment Interactive Lab</title>
 <link rel="icon" type="image/png" href="yell-logo.png">
-<style>
-  :root{
-    --bg:#0f1115;
-    --panel:#171a20;
-    --panel-2:#1d212a;
-    --line:#262a33;
-    --amber:#ee8c12;
-    --amber-dim:#8a5410;
-    --teal:#2cc4b2;
-    --teal-dim:#1e857a;
-    --paper:#f2efe8;
-    --paper-dim:#8f8a82;
-    --danger:#e0645a;
-    --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
-    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--paper);font-family:var(--sans);}
-  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
-  .app{max-width:1080px;margin:0 auto;padding:28px 24px 60px;}
-
-  .app-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding-bottom:18px;}
-  h1{font-family:var(--mono);font-size:1.25rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 6px;}
-  .subtitle{margin:0;color:var(--paper-dim);font-size:0.78rem;font-family:var(--mono);}
-  .brand-rule{height:2px;border-radius:1px;background:linear-gradient(90deg,var(--teal-dim),var(--amber));margin-bottom:20px;}
-  .master-vol{display:flex;align-items:center;gap:10px;}
-  .master-vol label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--paper-dim);font-family:var(--mono);}
-
-  .app-footer{display:flex;justify-content:center;border-top:1px solid var(--line);margin-top:36px;padding-top:22px;}
-  .brand-logo{height:160px;width:auto;display:block;border-radius:12px;box-shadow:0 2px 14px rgba(0,0,0,0.35);}
-
-  .tabs{display:flex;gap:4px;margin-bottom:22px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
-  .tab-btn{background:none;border:none;color:var(--paper-dim);padding:10px 16px;font-size:0.72rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s, border-color .15s;}
-  .tab-btn:hover{color:var(--paper);}
-  .tab-btn.active{color:var(--amber);border-bottom-color:var(--amber);}
-
-  .panel{display:none;}
-  .panel.active{display:block;animation:fade .2s ease;}
-  @keyframes fade{from{opacity:0;}to{opacity:1;}}
-  @media (prefers-reduced-motion: reduce){ .panel.active{animation:none;} }
-
-  .caption{color:var(--paper-dim);font-size:0.92rem;line-height:1.55;max-width:640px;margin:0 0 20px;}
-
-  .controls-row{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:16px;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;}
-  .controls-row.no-top-radius{border-top-left-radius:0;border-top-right-radius:0;border-top:none;margin-top:-16px;padding-top:0;}
-
-  .btn-group{display:flex;gap:6px;flex-wrap:wrap;}
-  .shape-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--paper-dim);padding:9px 16px;border-radius:7px;font-size:0.78rem;font-family:var(--mono);cursor:pointer;transition:all .15s;}
-  .shape-btn:hover{color:var(--paper);border-color:var(--teal-dim);}
-  .shape-btn.active{color:var(--bg);background:var(--teal);border-color:var(--teal);font-weight:700;}
-
-  .slider-group{display:flex;flex-direction:column;gap:7px;min-width:220px;flex:1;}
-  .slider-group .label-row{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--paper-dim);font-family:var(--mono);}
-  .slider-group .val{color:var(--amber);}
-  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:var(--line);border-radius:2px;outline:none;}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--teal);}
-  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg);}
-
-  select.readout {
-    -webkit-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238f8a82' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 0.7rem center;
-    background-size: 1em;
-    padding-right: 2.5rem !important;
-    cursor: pointer;
-    min-width: 140px;
-  }
-
-  .play-btn{background:var(--teal);color:#08211d;border:none;padding:11px 24px;border-radius:7px;font-size:0.78rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;cursor:pointer;transition:background .15s, transform .1s;}
-  .play-btn:hover{background:#3fe0ca;}
-  .play-btn:active{transform:scale(0.97);}
-  .play-btn.playing{background:var(--danger);color:#2c0e0c;}
-  .play-btn.playing:hover{background:#ea7d74;}
-  .play-btn.fire{background:var(--amber);color:#2c1a05;}
-  .play-btn.fire:hover{background:#f7a03a;}
-
-  .readout{font-family:var(--mono);font-size:0.78rem;color:var(--paper);background:var(--panel-2);border:1px solid var(--line);padding:9px 14px;border-radius:7px;}
-  .readout .hi{color:var(--amber);font-weight:700;}
-
-  .viz{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
-  .viz h4{margin:0 0 10px;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--paper-dim);font-weight:600;font-family:var(--mono);}
-  canvas{width:100%;height:220px;display:block;}
-
-  @media (max-width:640px){
-    .controls-row{flex-direction:column;align-items:stretch;}
-    .slider-group{min-width:100%;}
-    .brand-logo{height:130px;}
-  }
-</style>
+<link rel="stylesheet" href="light.css">
+<meta property="og:title" content="Sound & Space — Yell Entertainment Lab">
+<meta property="og:description" content="Frequency, wavelength, speed of sound and λ = v / f — interactive sims with real audio.">
+<meta property="og:image" content="og-image.png">
 </head>
 <body>
 <div class="app">
@@ -119,7 +32,6 @@
   </nav>
 
   <main>
-    <!-- MODULE 1: FREQUENCY (FIXED TIME WINDOW) -->
     <section class="panel active" id="panel-freq">
       <p class="caption">Frequency is the number of vibrations per second. The view below always shows the same 10 ms of time — as frequency rises, more cycles pack into that fixed window.</p>
       <div class="controls-row">
@@ -128,7 +40,12 @@
           <input type="range" id="freqSlider" min="20" max="2000" step="1" value="440" aria-label="Frequency in Hz">
         </div>
         <button class="play-btn" id="playFreq">▶ Play</button>
-        <div class="readout">Note: <span class="hi" id="noteReadout">A4 +0¢</span> · Period: <span class="hi" id="periodReadout">2.27 ms</span> · Cycles: <span class="hi" id="cyclesFreqReadout">4.4</span></div>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">Note: <span class="hi" id="noteReadout">A4 +0¢</span></div>
+        <div class="readout">Period: <span class="hi" id="periodReadout">2.27 ms</span></div>
+        <div class="readout">Cycles in view: <span class="hi" id="cyclesFreqReadout">4.4</span></div>
       </div>
       <div class="viz">
         <h4>Time domain — 10 ms window</h4>
@@ -136,7 +53,6 @@
       </div>
     </section>
 
-    <!-- MODULE 2: WAVELENGTH (FIXED SPACE WINDOW) -->
     <section class="panel" id="panel-wave">
       <p class="caption">Wavelength (λ) is the physical distance of one complete cycle. The view below always shows 2 meters of space — as frequency rises, more waves fit into that same distance.</p>
       <div class="controls-row">
@@ -144,7 +60,7 @@
           <div class="label-row"><span>Frequency</span><span class="val" id="waveFreqVal">440 Hz</span></div>
           <input type="range" id="waveFreqSlider" min="20" max="2000" step="1" value="440" aria-label="Frequency for wavelength">
         </div>
-        <div class="slider-group" style="max-width:160px; flex:0;">
+        <div class="slider-group" style="max-width:180px;flex:0;">
            <div class="label-row"><span>Medium</span></div>
            <select id="mediumSelect" class="readout">
              <option value="343">Air (343 m/s)</option>
@@ -152,7 +68,11 @@
              <option value="5960">Steel (5960 m/s)</option>
            </select>
         </div>
-        <div class="readout">λ = <span class="hi" id="lambdaReadout">0.780 m</span> · Cycles visible: <span class="hi" id="cyclesReadout">2.56</span></div>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">λ = <span class="hi" id="lambdaReadout">0.780 m</span></div>
+        <div class="readout">Cycles visible: <span class="hi" id="cyclesReadout">2.56</span></div>
       </div>
       <div class="viz">
         <h4>Spatial domain — 2 meter window</h4>
@@ -160,7 +80,6 @@
       </div>
     </section>
 
-    <!-- MODULE 3: SPEED -->
     <section class="panel" id="panel-speed">
       <p class="caption">Sound isn't instantaneous. It takes time for the wave to travel through space. This delay is why you see lightning before you hear thunder.</p>
       <div class="controls-row">
@@ -168,7 +87,7 @@
           <div class="label-row"><span>Distance</span><span class="val" id="distVal">100 m</span></div>
           <input type="range" id="distSlider" min="10" max="1000" step="10" value="100" aria-label="Distance in meters">
         </div>
-        <div class="slider-group" style="max-width:160px; flex:0;">
+        <div class="slider-group" style="max-width:180px;flex:0;">
            <div class="label-row"><span>Medium</span></div>
            <select id="speedMediumSelect" class="readout">
              <option value="343">Air (343 m/s)</option>
@@ -177,6 +96,9 @@
            </select>
         </div>
         <button class="play-btn fire" id="fireBtn">⚡ Fire</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
         <div class="readout">Delay: <span class="hi" id="delayReadout">291 ms</span></div>
       </div>
       <div class="viz">
@@ -185,7 +107,6 @@
       </div>
     </section>
 
-    <!-- MODULE 4: λ = v / f -->
     <section class="panel" id="panel-equation">
       <p class="caption">Wavelength equals the speed of sound divided by frequency. The speed is locked by the medium, so the frequency alone decides how long each wave is. The wave below travels at the medium's speed — raise the frequency and watch the wavelength shrink.</p>
       <div class="controls-row">
@@ -193,7 +114,7 @@
           <div class="label-row"><span>Frequency (f)</span><span class="val" id="eqFreqVal">200 Hz</span></div>
           <input type="range" id="eqFreqSlider" min="50" max="1000" step="10" value="200" aria-label="Frequency">
         </div>
-        <div class="slider-group" style="max-width:160px; flex:0;">
+        <div class="slider-group" style="max-width:180px;flex:0;">
            <div class="label-row"><span>Speed (v)</span></div>
            <select id="eqMediumSelect" class="readout">
              <option value="343">Air (343 m/s)</option>
@@ -201,13 +122,11 @@
              <option value="5960">Steel (5960 m/s)</option>
            </select>
         </div>
-        <button class="play-btn" id="playEq">▶ Play</button>
-        <div class="readout">λ = <span class="hi" id="eqLambdaReadout">1.715 m</span></div>
+        <button class="play-btn" id="playAdditive">▶ Play</button>
       </div>
-      <div class="controls-row no-top-radius">
-        <div class="readout" style="font-size:1.1rem; padding:12px 20px;">
-          <span class="hi" id="eqL">1.715</span> m = <span class="hi" id="eqV">343</span> m/s ÷ <span class="hi" id="eqF">200</span> Hz
-        </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout"><span class="hi" id="eqL">1.715</span> m = <span class="hi" id="eqV">343</span> m/s ÷ <span class="hi" id="eqF">200</span> Hz</div>
       </div>
       <div class="viz">
         <h4>Animated wave — traveling at speed v through the medium</h4>
@@ -224,14 +143,16 @@
 <script>
 (function(){
   'use strict';
+  const F0 = 220;
   let activeTab = 'freq';
-  const FREQ_WINDOW = 0.010; // fixed 10 ms time window for Module 1
+  const FREQ_WINDOW = 0.010;
 
+  // light-theme canvas palette
   const COLOR = {
-    paper:'#f2efe8', paperDim:'#8f8a82', amber:'#ee8c12', teal:'#2cc4b2',
-    grid:'rgba(242,239,232,0.09)'
+    paper:'#2b2a26', paperDim:'#8b877e', amber:'#ee8c12', teal:'#1e857a',
+    grid:'rgba(74,70,61,0.12)', rim:'rgba(74,70,61,0.35)'
   };
-  const FONT_MONO = "ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
+  const FONT_MONO = "ui-monospace,'SF Mono',Menlo,Consolas,monospace";
 
   let ctx = null, masterGain = null, limiter = null;
   function ensureAudio(){
@@ -248,7 +169,7 @@
     if(masterGain) masterGain.gain.setTargetAtTime(e.target.value/100, ctx.currentTime, 0.02);
   });
   function setParam(param, value, tc){
-    if(!ctx) return;
+    if(!ctx || !param) return;
     param.setTargetAtTime(value, ctx.currentTime, tc||0.015);
   }
 
@@ -256,36 +177,28 @@
   function reg(id){
     const el = document.getElementById(id);
     const c = {el, ctx:null, w:0, h:0};
-    canvases.push(c);
-    resizeOne(c);
-    return c;
+    canvases.push(c); resizeOne(c); return c;
   }
   function resizeOne(c){
     const dpr = window.devicePixelRatio||1;
     const rect = c.el.getBoundingClientRect();
     const w = Math.max(rect.width, 50), h = Math.max(rect.height, 50);
     c.el.width = w*dpr; c.el.height = h*dpr;
-    c.ctx = c.el.getContext('2d');
-    c.ctx.setTransform(dpr,0,0,dpr,0,0);
+    c.ctx = c.el.getContext('2d'); c.ctx.setTransform(dpr,0,0,dpr,0,0);
     c.w = w; c.h = h;
   }
   let resizeTO;
-  window.addEventListener('resize', ()=>{
-    clearTimeout(resizeTO);
-    resizeTO = setTimeout(()=>canvases.forEach(resizeOne), 120);
-  });
-
+  window.addEventListener('resize', ()=>{ clearTimeout(resizeTO); resizeTO = setTimeout(()=>canvases.forEach(resizeOne), 120); });
   function clear(c){ c.ctx.clearRect(0,0,c.w,c.h); }
 
   function drawAxes(c, yMin, yMax){
-    const {ctx:g,w,h} = c;
+    const g=c.ctx,w=c.w,h=c.h;
     g.strokeStyle = COLOR.grid; g.lineWidth = 1;
     const zeroY = h - ((0-yMin)/(yMax-yMin))*h;
     g.beginPath(); g.moveTo(0,zeroY); g.lineTo(w,zeroY); g.stroke();
   }
-
   function plot(c, fn, xStart, xEnd, yMin, yMax, color, lineWidth, nSamples){
-    const {ctx:g,w,h} = c;
+    const g=c.ctx,w=c.w,h=c.h;
     g.strokeStyle = color; g.lineWidth = lineWidth||2;
     g.beginPath();
     const N = nSamples || Math.max(Math.round(w*2), 400);
@@ -298,350 +211,199 @@
     }
     g.stroke();
   }
-
-  function updatePlayBtn(id, isPlaying) {
-    const btn = document.getElementById(id);
-    if(isPlaying) {
-      btn.textContent = '■ Stop'; btn.classList.add('playing');
-    } else {
-      btn.textContent = '▶ Play'; btn.classList.remove('playing');
-    }
+  function updatePlayBtn(id, on){
+    const b=document.getElementById(id);
+    if(on){ b.textContent='■ Stop'; b.classList.add('playing'); }
+    else { b.textContent='▶ Play'; b.classList.remove('playing'); }
   }
-
-  const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  function getNote(freq) {
-    if (freq <= 0) return '--';
-    const midi = 12 * Math.log2(freq / 440) + 69;
-    const roundedMidi = Math.round(midi);
-    const octave = Math.floor(roundedMidi / 12) - 1;
-    const noteName = notes[roundedMidi % 12];
-    const cents = Math.round((midi - roundedMidi) * 100);
-    return `${noteName}${octave} ${cents >= 0 ? '+' : ''}${cents}¢`;
-  }
-
-  function drawTimeLabels(c, winSec) {
-    const {ctx: g, w, h} = c;
-    g.fillStyle = COLOR.paperDim;
-    g.font = `10px ${FONT_MONO}`;
-    g.textAlign = "center";
-    const steps = 5;
-    for(let i=0; i<=steps; i++) {
-      const x = (i / steps) * w;
-      const t_ms = (winSec * i / steps) * 1000;
-      g.fillText(t_ms.toFixed(1) + "ms", x, h - 4);
-      g.strokeStyle = COLOR.grid;
-      g.beginPath(); g.moveTo(x, h - 16); g.lineTo(x, h - 12); g.stroke();
-    }
-  }
-
-  function drawDistLabels(c, winMeters) {
-    const {ctx: g, w, h} = c;
-    g.fillStyle = COLOR.paperDim;
-    g.font = `10px ${FONT_MONO}`;
-    g.textAlign = "center";
-    const steps = 5;
-    for(let i=0; i<=steps; i++) {
-      const x = (i / steps) * w;
-      const dist = winMeters * i / steps;
-      g.fillText(dist.toFixed(2) + "m", x, h - 4);
-      g.strokeStyle = COLOR.grid;
-      g.beginPath(); g.moveTo(x, h - 16); g.lineTo(x, h - 12); g.stroke();
-    }
-  }
-
   function stopAllModules(){
     if(m1.playing) stopM1();
     if(m5.playing) stopM5();
-    m3.animating = false;
+    m3.animating=false;
     if(speedTimeoutId) clearTimeout(speedTimeoutId);
   }
 
-  // ================= MODULE 1: FREQUENCY (FIXED TIME WINDOW) =================
-  const m1 = { f: 440, playing: false, osc: null, gain: null };
+  // ============ MODULE 1 ============
+  const m1 = { f:440, playing:false, osc:null, gain:null };
   const cvFreqTime = reg('cvFreqTime');
   const freqSlider = document.getElementById('freqSlider');
-
-  freqSlider.addEventListener('input', e => {
+  freqSlider.addEventListener('input', e=>{
     m1.f = +e.target.value;
     document.getElementById('freqVal').textContent = m1.f + ' Hz';
-    document.getElementById('noteReadout').textContent = getNote(m1.f);
-    document.getElementById('periodReadout').textContent = (1000 / m1.f).toFixed(2) + ' ms';
-    document.getElementById('cyclesFreqReadout').textContent = (m1.f * FREQ_WINDOW).toFixed(1);
-    if (m1.osc) setParam(m1.osc.frequency, m1.f);
+    const notes=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const midi = 12*Math.log2(m1.f/440)+69, rm=Math.round(midi);
+    const cents = Math.round((midi-rm)*100);
+    document.getElementById('noteReadout').textContent = notes[rm%12]+(Math.floor(rm/12)-1)+(cents>=0?' +'+cents+'¢':' '+cents+'¢');
+    document.getElementById('periodReadout').textContent = (1000/m1.f).toFixed(2)+' ms';
+    document.getElementById('cyclesFreqReadout').textContent = (m1.f*FREQ_WINDOW).toFixed(1);
+    if(m1.osc) setParam(m1.osc.frequency, m1.f);
   });
   freqSlider.dispatchEvent(new Event('input'));
-
-  document.getElementById('playFreq').addEventListener('click', () => {
-    if(m1.playing) stopM1(); else playM1();
-  });
-
-  function playM1() {
-    ensureAudio(); ctx.resume();
-    stopAllModules();
-    m1.osc = ctx.createOscillator();
-    m1.osc.type = 'sine';
-    m1.osc.frequency.value = m1.f;
-    m1.gain = ctx.createGain();
-    m1.gain.gain.value = 0.22;
-    m1.osc.connect(m1.gain); m1.gain.connect(masterGain);
-    m1.osc.start();
-    m1.playing = true;
-    updatePlayBtn('playFreq', true);
+  document.getElementById('playFreq').addEventListener('click', ()=> m1.playing?stopM1():playM1());
+  function playM1(){
+    ensureAudio(); ctx.resume(); stopAllModules();
+    m1.osc=ctx.createOscillator(); m1.osc.type='sine'; m1.osc.frequency.value=m1.f;
+    m1.gain=ctx.createGain(); m1.gain.gain.value=0.22;
+    m1.osc.connect(m1.gain); m1.gain.connect(masterGain); m1.osc.start();
+    m1.playing=true; updatePlayBtn('playFreq',true);
   }
-  function stopM1() {
+  function stopM1(){
     if(m1.osc){ try{m1.osc.stop();}catch(e){} m1.osc.disconnect(); m1.osc=null; }
-    m1.playing = false;
-    updatePlayBtn('playFreq', false);
+    m1.playing=false; updatePlayBtn('playFreq',false);
   }
-  function drawM1() {
+  function drawM1(){
     clear(cvFreqTime);
-    drawAxes(cvFreqTime, -1.2, 1.2);
-    plot(cvFreqTime, t => Math.sin(2 * Math.PI * m1.f * t), 0, FREQ_WINDOW, -1.2, 1.2, COLOR.teal, 2.2);
-    drawTimeLabels(cvFreqTime, FREQ_WINDOW);
-  }
-
-  // ================= MODULE 2: WAVELENGTH (FIXED SPACE WINDOW) =================
-  const m2 = { f: 440, v: 343, lambda: 343/440, viewDist: 2 };
-  const cvWaveSpace = reg('cvWaveSpace');
-  const waveFreqSlider = document.getElementById('waveFreqSlider');
-  const mediumSelect = document.getElementById('mediumSelect');
-
-  function updateWave() {
-    m2.f = +waveFreqSlider.value;
-    m2.v = +mediumSelect.value;
-    m2.lambda = m2.v / m2.f;
-    const cyclesVisible = m2.viewDist / m2.lambda;
-    document.getElementById('waveFreqVal').textContent = m2.f + ' Hz';
-    document.getElementById('lambdaReadout').textContent = m2.lambda.toFixed(3) + ' m';
-    document.getElementById('cyclesReadout').textContent = cyclesVisible.toFixed(2);
-  }
-  waveFreqSlider.addEventListener('input', updateWave);
-  mediumSelect.addEventListener('change', updateWave);
-  updateWave();
-
-  function drawM2() {
-    clear(cvWaveSpace);
-    drawAxes(cvWaveSpace, -1.2, 1.2);
-    const win = m2.viewDist;
-
-    plot(cvWaveSpace, x => Math.sin(2 * Math.PI * x / m2.lambda), 0, win, -1.2, 1.2, COLOR.amber, 2.2);
-    drawDistLabels(cvWaveSpace, win);
-
-    const {ctx: g, w, h} = cvWaveSpace;
-    let scaleVal = 1;
-    let scaleLabel = "1 meter";
-    let scalePx = (scaleVal / win) * w;
-
-    if (scalePx < 30) { scaleVal = 10; scaleLabel = "10 meters"; scalePx = (scaleVal / win) * w; }
-    if (scalePx < 30) { scaleVal = 100; scaleLabel = "100 meters"; scalePx = (scaleVal / win) * w; }
-
-    if (scalePx > 10 && scalePx < w - 20) {
-      g.strokeStyle = COLOR.paper;
-      g.lineWidth = 2;
-      g.beginPath();
-      g.moveTo(10, h - 22);
-      g.lineTo(10 + scalePx, h - 22);
-      g.stroke();
-
-      g.beginPath(); g.moveTo(10, h - 26); g.lineTo(10, h - 18); g.stroke();
-      g.beginPath(); g.moveTo(10 + scalePx, h - 26); g.lineTo(10 + scalePx, h - 18); g.stroke();
-
-      g.fillStyle = COLOR.paper;
-      g.font = `10px ${FONT_MONO}`;
-      g.textAlign = "left";
-      g.fillText(scaleLabel, 14, h - 26);
+    drawAxes(cvFreqTime,-1.2,1.2);
+    plot(cvFreqTime, t=>Math.sin(2*Math.PI*m1.f*t), 0, FREQ_WINDOW, -1.2, 1.2, COLOR.teal, 2.2);
+    const g=cvFreqTime.ctx,w=cvFreqTime.w,h=cvFreqTime.h;
+    g.fillStyle=COLOR.paperDim; g.font=`10px ${FONT_MONO}`; g.textAlign='center';
+    for(let i=0;i<=5;i++){
+      const x=(i/5)*w;
+      g.fillText((FREQ_WINDOW*1000*i/5).toFixed(1)+'ms', x, h-4);
     }
   }
 
-  // ================= MODULE 3: SPEED =================
-  const m3 = { dist: 100, v: 343, delay: 100/343, animating: false, startTime: 0 };
-  let speedTimeoutId = null;
-  const cvSpeed = reg('cvSpeed');
-  const distSlider = document.getElementById('distSlider');
-  const speedMediumSelect = document.getElementById('speedMediumSelect');
-
-  function updateSpeed() {
-    m3.dist = +distSlider.value;
-    m3.v = +speedMediumSelect.value;
-    m3.delay = m3.dist / m3.v;
-    document.getElementById('distVal').textContent = m3.dist + ' m';
-    document.getElementById('delayReadout').textContent = (m3.delay * 1000).toFixed(0) + ' ms';
-    if(m3.animating) m3.animating = false;
+  // ============ MODULE 2 ============
+  const m2 = { f:440, v:343, lambda:343/440, viewDist:2 };
+  const cvWaveSpace = reg('cvWaveSpace');
+  const waveFreqSlider=document.getElementById('waveFreqSlider');
+  const mediumSelect=document.getElementById('mediumSelect');
+  function updateWave(){
+    m2.f=+waveFreqSlider.value; m2.v=+mediumSelect.value;
+    m2.lambda=m2.v/m2.f;
+    document.getElementById('waveFreqVal').textContent=m2.f+' Hz';
+    document.getElementById('lambdaReadout').textContent=m2.lambda.toFixed(3)+' m';
+    document.getElementById('cyclesReadout').textContent=(m2.viewDist/m2.lambda).toFixed(2);
   }
-  distSlider.addEventListener('input', updateSpeed);
-  speedMediumSelect.addEventListener('change', updateSpeed);
-  updateSpeed();
+  waveFreqSlider.addEventListener('input',updateWave);
+  mediumSelect.addEventListener('change',updateWave);
+  updateWave();
+  function drawM2(){
+    clear(cvWaveSpace);
+    drawAxes(cvWaveSpace,-1.2,1.2);
+    const win=m2.viewDist;
+    plot(cvWaveSpace, x=>Math.sin(2*Math.PI*x/m2.lambda), 0, win, -1.2, 1.2, COLOR.amber, 2.2);
+    const g=cvWaveSpace.ctx,w=cvWaveSpace.w,h=cvWaveSpace.h;
+    g.fillStyle=COLOR.paperDim; g.font=`10px ${FONT_MONO}`; g.textAlign='center';
+    for(let i=0;i<=5;i++){ g.fillText((win*i/5).toFixed(2)+'m',(i/5)*w,h-4); }
+    let scaleVal=1, scaleLabel='1 meter', scalePx=(scaleVal/win)*w;
+    if(scalePx<30){ scaleVal=10; scaleLabel='10 meters'; scalePx=(scaleVal/win)*w; }
+    if(scalePx<30){ scaleVal=100; scaleLabel='100 meters'; scalePx=(scaleVal/win)*w; }
+    if(scalePx>10 && scalePx<w-20){
+      g.strokeStyle=COLOR.paper; g.lineWidth=2;
+      g.beginPath(); g.moveTo(10,h-22); g.lineTo(10+scalePx,h-22); g.stroke();
+      g.beginPath(); g.moveTo(10,h-26); g.lineTo(10,h-18); g.stroke();
+      g.beginPath(); g.moveTo(10+scalePx,h-26); g.lineTo(10+scalePx,h-18); g.stroke();
+      g.fillStyle=COLOR.paper; g.textAlign='left'; g.fillText(scaleLabel,14,h-26);
+    }
+  }
 
-  document.getElementById('fireBtn').addEventListener('click', () => {
+  // ============ MODULE 3 ============
+  const m3 = { dist:100, v:343, delay:100/343, animating:false, startTime:0 };
+  let speedTimeoutId=null;
+  const cvSpeed = reg('cvSpeed');
+  const distSlider=document.getElementById('distSlider');
+  const speedMediumSelect=document.getElementById('speedMediumSelect');
+  function updateSpeed(){
+    m3.dist=+distSlider.value; m3.v=+speedMediumSelect.value;
+    m3.delay=m3.dist/m3.v;
+    document.getElementById('distVal').textContent=m3.dist+' m';
+    document.getElementById('delayReadout').textContent=(m3.delay*1000).toFixed(0)+' ms';
+    if(m3.animating) m3.animating=false;
+  }
+  distSlider.addEventListener('input',updateSpeed);
+  speedMediumSelect.addEventListener('change',updateSpeed);
+  updateSpeed();
+  function playClick(vol=1){
+    if(!ctx) return;
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='square'; o.frequency.value=800; g.gain.value=0.1*vol;
+    o.connect(g); g.connect(masterGain); o.start();
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.05);
+    o.stop(ctx.currentTime+0.06);
+  }
+  document.getElementById('fireBtn').addEventListener('click', ()=>{
     ensureAudio(); ctx.resume();
     if(m3.animating) return;
-
-    playClick();
-    m3.animating = true;
-    m3.startTime = performance.now();
-
+    playClick(); m3.animating=true; m3.startTime=performance.now();
     if(speedTimeoutId) clearTimeout(speedTimeoutId);
-
-    if (m3.delay < 4.0) {
-      speedTimeoutId = setTimeout(() => {
-        playClick(0.8);
-        m3.animating = false;
-      }, m3.delay * 1000);
-    } else {
-      speedTimeoutId = setTimeout(() => { m3.animating = false; }, 4000);
-    }
+    if(m3.delay<4){ speedTimeoutId=setTimeout(()=>{ playClick(0.8); m3.animating=false; }, m3.delay*1000); }
+    else { speedTimeoutId=setTimeout(()=>{ m3.animating=false; },4000); }
   });
-
-  function playClick(vol = 1.0) {
-    if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.value = 800;
-    g.gain.value = 0.1 * vol;
-    osc.connect(g); g.connect(masterGain);
-    osc.start();
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-    osc.stop(ctx.currentTime + 0.06);
-  }
-
-  function drawM3() {
+  function drawM3(){
     clear(cvSpeed);
-    const {ctx: g, w, h} = cvSpeed;
-
-    const trackY = h / 2;
-    const trackStart = 40;
-    const trackEnd = w - 40;
-    const trackW = trackEnd - trackStart;
-
-    g.strokeStyle = COLOR.grid;
-    g.lineWidth = 2;
-    g.beginPath();
-    g.moveTo(trackStart, trackY);
-    g.lineTo(trackEnd, trackY);
-    g.stroke();
-
-    g.fillStyle = COLOR.amber;
-    g.beginPath(); g.arc(trackStart, trackY, 6, 0, Math.PI*2); g.fill();
-    g.fillStyle = COLOR.paperDim;
-    g.font = `11px ${FONT_MONO}`;
-    g.textAlign = "center";
-    g.fillText("Source", trackStart, trackY - 15);
-
-    g.fillStyle = COLOR.teal;
-    g.beginPath(); g.arc(trackEnd, trackY, 6, 0, Math.PI*2); g.fill();
-    g.fillStyle = COLOR.paperDim;
-    g.fillText("Observer", trackEnd, trackY - 15);
-
-    g.fillText(m3.dist + " m", w / 2, trackY + 25);
-
-    if (m3.animating) {
-      const elapsed = (performance.now() - m3.startTime) / 1000;
-      const progress = Math.min(elapsed / m3.delay, 1.0);
-      const pulseX = trackStart + progress * trackW;
-
-      g.fillStyle = COLOR.paper;
-      g.shadowColor = COLOR.paper;
-      g.shadowBlur = 10;
-      g.beginPath(); g.arc(pulseX, trackY, 5, 0, Math.PI*2); g.fill();
-      g.shadowBlur = 0;
-
-      g.strokeStyle = "rgba(242,239,232,0.3)";
-      g.lineWidth = 2;
-      g.beginPath();
-      g.moveTo(trackStart, trackY);
-      g.lineTo(pulseX, trackY);
-      g.stroke();
+    const g=cvSpeed.ctx,w=cvSpeed.w,h=cvSpeed.h;
+    const trackY=h/2, trackStart=40, trackEnd=w-40, trackW=trackEnd-trackStart;
+    g.strokeStyle=COLOR.grid; g.lineWidth=2;
+    g.beginPath(); g.moveTo(trackStart,trackY); g.lineTo(trackEnd,trackY); g.stroke();
+    g.fillStyle=COLOR.amber; g.beginPath(); g.arc(trackStart,trackY,6,0,Math.PI*2); g.fill();
+    g.fillStyle=COLOR.paperDim; g.font=`11px ${FONT_MONO}`; g.textAlign='center';
+    g.fillText('Source',trackStart,trackY-15);
+    g.fillStyle=COLOR.teal; g.beginPath(); g.arc(trackEnd,trackY,6,0,Math.PI*2); g.fill();
+    g.fillStyle=COLOR.paperDim; g.fillText('Observer',trackEnd,trackY-15);
+    g.fillText(m3.dist+' m', w/2, trackY+25);
+    if(m3.animating){
+      const elapsed=(performance.now()-m3.startTime)/1000;
+      const progress=Math.min(elapsed/m3.delay,1);
+      const pulseX=trackStart+progress*trackW;
+      g.fillStyle=COLOR.paper; g.shadowColor=COLOR.paper; g.shadowBlur=8;
+      g.beginPath(); g.arc(pulseX,trackY,5,0,Math.PI*2); g.fill(); g.shadowBlur=0;
+      g.strokeStyle='rgba(74,70,61,0.3)'; g.lineWidth=2;
+      g.beginPath(); g.moveTo(trackStart,trackY); g.lineTo(pulseX,trackY); g.stroke();
     }
   }
 
-  // ================= MODULE 4: λ = v / f =================
-  const m5 = { f: 200, v: 343, lambda: 343/200, playing: false, osc: null, gain: null, animTime: 0 };
+  // ============ MODULE 4 (λ = v / f) ============
+  const m5 = { f:200, v:343, lambda:343/200, playing:false, osc:null, analyser:null, animTime:0 };
   const cvEquation = reg('cvEquation');
-  const eqFreqSlider = document.getElementById('eqFreqSlider');
-  const eqMediumSelect = document.getElementById('eqMediumSelect');
-
-  function updateEq() {
-    m5.f = +eqFreqSlider.value;
-    m5.v = +eqMediumSelect.value;
-    m5.lambda = m5.v / m5.f;
-    document.getElementById('eqFreqVal').textContent = m5.f + ' Hz';
-    document.getElementById('eqLambdaReadout').textContent = m5.lambda.toFixed(3) + ' m';
-    document.getElementById('eqV').textContent = m5.v;
-    document.getElementById('eqF').textContent = m5.f;
-    document.getElementById('eqL').textContent = m5.lambda.toFixed(3);
-    if (m5.osc) setParam(m5.osc.frequency, m5.f);
+  const eqFreqSlider=document.getElementById('eqFreqSlider');
+  const eqMediumSelect=document.getElementById('eqMediumSelect');
+  function updateEq(){
+    m5.f=+eqFreqSlider.value; m5.v=+eqMediumSelect.value;
+    m5.lambda=m5.v/m5.f;
+    document.getElementById('eqFreqVal').textContent=m5.f+' Hz';
+    document.getElementById('eqL').textContent=m5.lambda.toFixed(3);
+    document.getElementById('eqV').textContent=m5.v;
+    document.getElementById('eqF').textContent=m5.f;
+    if(m5.osc) setParam(m5.osc.frequency,m5.f);
   }
-  eqFreqSlider.addEventListener('input', updateEq);
-  eqMediumSelect.addEventListener('change', updateEq);
+  eqFreqSlider.addEventListener('input',updateEq);
+  eqMediumSelect.addEventListener('change',updateEq);
   updateEq();
-
-  document.getElementById('playEq').addEventListener('click', () => {
-    if(m5.playing) stopM5(); else playM5();
-  });
-
-  function playM5() {
-    ensureAudio(); ctx.resume();
-    stopAllModules();
-    m5.osc = ctx.createOscillator();
-    m5.osc.type = 'sine';
-    m5.osc.frequency.value = m5.f;
-    m5.gain = ctx.createGain();
-    m5.gain.gain.value = 0.22;
-    m5.osc.connect(m5.gain); m5.gain.connect(masterGain);
-    m5.osc.start();
-    m5.playing = true;
-    m5.animTime = 0;
-    updatePlayBtn('playEq', true);
+  document.getElementById('playAdditive').addEventListener('click', ()=> m5.playing?stopM5():playM5());
+  function playM5(){
+    ensureAudio(); ctx.resume(); stopAllModules();
+    m5.osc=ctx.createOscillator(); m5.osc.type='sine'; m5.osc.frequency.value=m5.f;
+    const g=ctx.createGain(); g.gain.value=0.22;
+    m5.osc.connect(g); g.connect(masterGain); m5.osc.start();
+    m5.playing=true; m5.animTime=0; updatePlayBtn('playAdditive',true);
   }
-
-  function stopM5() {
+  function stopM5(){
     if(m5.osc){ try{m5.osc.stop();}catch(e){} m5.osc.disconnect(); m5.osc=null; }
-    m5.playing = false;
-    updatePlayBtn('playEq', false);
+    m5.playing=false; updatePlayBtn('playAdditive',false);
   }
-
-  function drawM5(dt) {
+  function drawM5(dt){
+    if(m5.playing) m5.animTime+=dt;
     clear(cvEquation);
-    drawAxes(cvEquation, -1.2, 1.2);
-
-    if (m5.playing) {
-      m5.animTime += dt;
-    }
-
-    const viewDist = 4;
-    const phaseOffset = m5.v * m5.animTime;
-
-    plot(cvEquation, x => Math.sin(2 * Math.PI * (x - phaseOffset) / m5.lambda), 0, viewDist, -1.2, 1.2, COLOR.teal, 2.2);
-    drawDistLabels(cvEquation, viewDist);
-
-    const {ctx: g, w, h} = cvEquation;
-
-    const particleX = viewDist / 2;
-    const particleY_phys = Math.sin(2 * Math.PI * (particleX - phaseOffset) / m5.lambda);
-    const particlePx = (particleX / viewDist) * w;
-    const particlePy = h - ((particleY_phys - (-1.2)) / (1.2 - (-1.2))) * h;
-
-    g.fillStyle = COLOR.amber;
-    g.beginPath();
-    g.arc(particlePx, particlePy, 6, 0, Math.PI*2);
-    g.fill();
-
-    g.strokeStyle = "rgba(238,140,18,0.4)";
-    g.lineWidth = 1;
-    g.beginPath();
-    g.moveTo(particlePx, h - 20);
-    g.lineTo(particlePx, particlePy);
-    g.stroke();
-
-    g.fillStyle = COLOR.paperDim;
-    g.font = `10px ${FONT_MONO}`;
-    g.textAlign = "center";
-    g.fillText("Particle", particlePx, h - 24);
+    drawAxes(cvEquation,-1.2,1.2);
+    const g=cvEquation.ctx,w=cvEquation.w,h=cvEquation.h;
+    const viewDist=4;
+    const phaseOffset=m5.v*m5.animTime;
+    plot(cvEquation, x=>Math.sin(2*Math.PI*(x-phaseOffset)/m5.lambda), 0, viewDist, -1.2, 1.2, COLOR.teal, 2.2);
+    g.fillStyle=COLOR.paperDim; g.font=`10px ${FONT_MONO}`; g.textAlign='center';
+    for(let i=0;i<=4;i++){ g.fillText((viewDist*i/4).toFixed(0)+'m',(i/4)*w,h-4); }
+    const particleX=viewDist/2;
+    const pv=Math.sin(2*Math.PI*(particleX-phaseOffset)/m5.lambda);
+    const px=(particleX/viewDist)*w;
+    const py=h-((pv+1.2)/2.4)*h;
+    g.strokeStyle='rgba(238,140,18,0.4)'; g.lineWidth=1;
+    g.beginPath(); g.moveTo(px,h-20); g.lineTo(px,py); g.stroke();
+    g.fillStyle=COLOR.amber; g.beginPath(); g.arc(px,py,6,0,Math.PI*2); g.fill();
+    g.fillStyle=COLOR.paperDim; g.fillText('particle',px,h-24);
   }
 
   // ---------------- tabs ----------------
-  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabButtons=document.querySelectorAll('.tab-btn');
   tabButtons.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       stopAllModules();
@@ -649,17 +411,16 @@
       btn.classList.add('active');
       document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
       document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
-      activeTab = btn.dataset.tab;
-      setTimeout(()=>canvases.forEach(resizeOne), 50);
+      activeTab=btn.dataset.tab;
+      canvases.forEach(resizeOne);
+      setTimeout(()=>canvases.forEach(resizeOne),50);
     });
   });
 
-  // ---------------- animation loop ----------------
-  let lastTime = 0;
-  function animate(currentTime){
-    const dt = (currentTime - lastTime) / 1000;
-    lastTime = currentTime;
-
+  let lastTime=0;
+  function animate(now){
+    let dt=(now-lastTime)/1000; lastTime=now;
+    if(!(dt>0)||dt>0.05) dt=0.016;
     if(activeTab==='freq') drawM1();
     else if(activeTab==='wave') drawM2();
     else if(activeTab==='speed') drawM3();
