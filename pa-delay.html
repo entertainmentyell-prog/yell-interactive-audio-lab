@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PA Delay Alignment — Yell Entertainment Interactive Lab</title>
+<link rel="icon" type="image/png" href="yell-logo.png">
+<meta property="og:title" content="PA Delay Alignment — Yell Entertainment Lab">
+<meta property="og:description" content="Mains + delay towers: set the delay, watch the wavefronts, hear the alignment.">
+<meta property="og:image" content="og-image.png">
+<style>
+  :root{
+    --bg:#0b0e13; --glass:rgba(255,255,255,0.055); --stroke:rgba(242,239,232,0.14);
+    --stroke-bright:rgba(242,239,232,0.30); --amber:#ee8c12; --teal:#2cc4b2; --teal-bright:#3ad6c6;
+    --teal-dim:#1e857a; --paper:#f2efe8; --paper-dim:#a5a19a; --danger:#e0645a;
+    --card-shadow:0 10px 34px rgba(0,0,0,.38); --glass-blur:blur(16px) saturate(150%);
+    --mono: ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;
+    --sans: -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--paper);font-family:var(--sans);}
+  :focus-visible{outline:2px solid var(--teal-bright);outline-offset:2px;}
+  .bg-orbs{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;}
+  .orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.45;}
+  .o1{width:540px;height:540px;background:#0f5f56;top:-160px;left:-140px;animation:drift1 26s ease-in-out infinite alternate;}
+  .o2{width:480px;height:480px;background:#8a4d0f;top:28%;right:-180px;animation:drift2 32s ease-in-out infinite alternate;}
+  .o3{width:400px;height:400px;background:#16324f;bottom:-160px;left:32%;animation:drift3 28s ease-in-out infinite alternate;}
+  @keyframes drift1{from{transform:translate(0,0) scale(1);}to{transform:translate(130px,70px) scale(1.15);}}
+  @keyframes drift2{from{transform:translate(0,0) scale(1.1);}to{transform:translate(-150px,-50px) scale(.95);}}
+  @keyframes drift3{from{transform:translate(0,0) scale(.95);}to{transform:translate(100px,-80px) scale(1.1);}}
+  @media (prefers-reduced-motion: reduce){ .orb{animation:none;} }
+  .app{max-width:1080px;margin:0 auto;padding:28px 24px 60px;}
+  .app-header,.controls-row,.info-row,.viz{
+    background:var(--glass); -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur);
+    border:1px solid var(--stroke); border-radius:16px;
+    box-shadow:var(--card-shadow), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  @supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
+    .app-header,.controls-row,.info-row,.viz{background:rgba(23,26,32,.92);}
+  }
+  .app-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:18px 20px;}
+  h1{font-family:var(--mono);font-size:1.3rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 6px;
+     background:linear-gradient(90deg,var(--paper) 30%,var(--teal-bright));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .subtitle{margin:0;color:var(--paper-dim);font-size:0.78rem;font-family:var(--mono);}
+  .brand-rule{height:2px;border-radius:1px;margin:16px 0 20px;background:linear-gradient(90deg,var(--teal-dim),var(--amber));box-shadow:0 0 14px rgba(238,140,18,.35);}
+  .master-vol{display:flex;align-items:center;gap:10px;}
+  .master-vol label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--paper-dim);font-family:var(--mono);}
+  .app-footer{display:flex;justify-content:center;border-top:1px solid var(--stroke);margin-top:36px;padding-top:22px;}
+  .brand-logo{height:150px;width:auto;display:block;border-radius:18px;box-shadow:var(--card-shadow), 0 0 0 1px var(--stroke);}
+  .caption{color:var(--paper-dim);font-size:0.92rem;line-height:1.55;max-width:680px;margin:0 0 20px;}
+  .controls-row{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:12px;padding:16px 18px;}
+  .info-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;}
+  .info-row .info-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--paper-dim);font-family:var(--mono);margin-right:6px;}
+  .slider-group{display:flex;flex-direction:column;gap:7px;min-width:180px;flex:1;}
+  .slider-group .label-row{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--paper-dim);font-family:var(--mono);}
+  .slider-group .val{color:var(--amber);}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:rgba(255,255,255,.14);border-radius:2px;outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--teal-bright);cursor:pointer;border:2px solid rgba(255,255,255,.35);box-shadow:0 0 10px rgba(58,214,198,.55);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--teal-bright);cursor:pointer;border:2px solid rgba(255,255,255,.35);}
+  .play-btn{background:rgba(44,196,178,.16);color:#c8fdf5;border:1px solid rgba(44,196,178,.5);padding:11px 24px;border-radius:11px;font-size:0.78rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;cursor:pointer;transition:all .15s;}
+  .play-btn:hover{background:rgba(44,196,178,.3);}
+  .play-btn.fire{background:rgba(238,140,18,.18);border-color:rgba(238,140,18,.55);color:#ffe1b8;}
+  .play-btn.fire:hover{background:rgba(238,140,18,.32);}
+  .readout{font-family:var(--mono);font-size:0.78rem;color:var(--paper);background:rgba(11,14,19,.45);border:1px solid var(--stroke);padding:9px 14px;border-radius:11px;}
+  .readout .hi{color:var(--amber);font-weight:700;}
+  .viz{padding:14px 16px;margin-bottom:14px;}
+  .viz h4{margin:0 0 10px;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--paper-dim);font-weight:600;font-family:var(--mono);}
+  canvas{width:100%;height:300px;display:block;}
+  @media (max-width:640px){ .controls-row{flex-direction:column;align-items:stretch;} .slider-group{min-width:100%;} .brand-logo{height:120px;} }
+</style>
+</head>
+<body>
+<div class="bg-orbs" aria-hidden="true"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span></div>
+<div class="app">
+  <header class="app-header">
+    <div>
+      <h1>PA Delay Alignment</h1>
+      <p class="subtitle">mains + delay tower · set the delay · hear the wavefronts land together</p>
+    </div>
+    <div class="master-vol">
+      <label for="masterVol">Master</label>
+      <input type="range" id="masterVol" min="0" max="100" value="70" style="width:90px;" aria-label="Master volume">
+    </div>
+  </header>
+  <div class="brand-rule" aria-hidden="true"></div>
+
+  <p class="caption">A delay tower must fire late enough that its sound leaves exactly as the mains' wavefront passes it — then every on-axis listener, anywhere in the field, hears both arrivals together. Mis-set the delay and the far field gets a slap echo; get it right and the tower "disappears". Fire pulses, move the listener, and watch Δ stay at zero once aligned.</p>
+
+  <div class="controls-row">
+    <div class="slider-group">
+      <div class="label-row"><span>Tower distance</span><span class="val" id="pdTowerVal">25 m</span></div>
+      <input type="range" id="pdTower" min="10" max="40" step="0.5" value="25" aria-label="Delay tower distance from stage">
+    </div>
+    <div class="slider-group">
+      <div class="label-row"><span>Listener distance</span><span class="val" id="pdListenVal">40 m</span></div>
+      <input type="range" id="pdListen" min="12" max="60" step="0.5" value="40" aria-label="Listener distance from stage">
+    </div>
+    <div class="slider-group">
+      <div class="label-row"><span>Applied delay</span><span class="val" id="pdDelayVal">0.0 ms</span></div>
+      <input type="range" id="pdDelay" min="0" max="150" step="0.5" value="0" aria-label="Applied delay in milliseconds">
+    </div>
+    <button class="play-btn fire" id="pdFire">⚡ Fire + listen</button>
+    <button class="play-btn" id="pdAuto">▶ Auto-align</button>
+  </div>
+
+  <div class="info-row">
+    <span class="info-label">Display</span>
+    <div class="readout">mains arrive = <span class="hi" id="pdTM">— ms</span></div>
+    <div class="readout">tower arrive = <span class="hi" id="pdTD">— ms</span></div>
+    <div class="readout">Δ = <span class="hi" id="pdDelta">— ms</span></div>
+    <div class="readout">correct delay = <span class="hi" id="pdSugg">— ms</span></div>
+    <div class="readout" id="pdStatus">set the delay…</div>
+  </div>
+
+  <div class="viz">
+    <h4>Side view · pulses at true speed · inset = impulse response at the listener</h4>
+    <canvas id="cvPA"></canvas>
+  </div>
+
+  <footer class="app-footer">
+    <img class="brand-logo" src="yell-logo.png" alt="Yell Entertainment — Your Sound, Your Story!!">
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const V=343;
+  const COLOR={paper:'#f2efe8',paperDim:'#a5a19a',amber:'#ee8c12',teal:'#2cc4b2',grid:'rgba(242,239,232,0.09)',rim:'rgba(242,239,232,0.28)'};
+  const FONT_MONO="ui-monospace,'SF Mono',Menlo,Consolas,monospace";
+  function $(id){return document.getElementById(id);}
+  function setText(id,s){const el=$(id); if(el&&el.textContent!==s) el.textContent=s;}
+  function on(id,ev,fn){const el=$(id); if(el) el.addEventListener(ev,fn); return el;}
+
+  let ctx=null,masterGain=null,limiter=null;
+  function ensureAudio(){
+    if(ctx) return;
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    masterGain=ctx.createGain(); masterGain.gain.value=($('masterVol')? +$('masterVol').value:70)/100;
+    limiter=ctx.createDynamicsCompressor();
+    limiter.threshold.value=-6; limiter.knee.value=0; limiter.ratio.value=20;
+    masterGain.connect(limiter); limiter.connect(ctx.destination);
+  }
+  on('masterVol','input',e=>{ if(masterGain) masterGain.gain.setTargetAtTime(e.target.value/100,ctx.currentTime,0.02); });
+  function clickAt(vol,delay){
+    if(!ctx) return;
+    const t=ctx.currentTime+Math.max(0,delay);
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='square'; o.frequency.value=800;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(0.12*vol,t+0.002);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.05);
+    o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.06);
+  }
+
+  const cv={el:$('cvPA'),ctx:null,w:0,h:0};
+  function resize(){
+    const dpr=window.devicePixelRatio||1,r=cv.el.getBoundingClientRect();
+    cv.w=Math.max(r.width,50); cv.h=Math.max(r.height,50);
+    cv.el.width=cv.w*dpr; cv.el.height=cv.h*dpr;
+    cv.ctx=cv.el.getContext('2d'); cv.ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize',resize); resize();
+
+  const P={ tower:25, listen:40, delay:0, fired:false, t0:0 };
+
+  function times(){
+    const tM=P.listen/V*1000;
+    const tD=(P.listen-P.tower)/V*1000 + P.delay;
+    return {tM,tD,delta:tD-tM,correct:P.tower/V*1000};
+  }
+  function updateInfo(){
+    P.tower=+($('pdTower')? $('pdTower').value:25);
+    P.listen=Math.max(+$('pdListen').value, P.tower+2);
+    P.delay=+($('pdDelay')? $('pdDelay').value:0);
+    setText('pdTowerVal',P.tower.toFixed(1)+' m');
+    setText('pdListenVal',P.listen.toFixed(1)+' m');
+    setText('pdDelayVal',P.delay.toFixed(1)+' ms');
+    const t=times();
+    setText('pdTM',t.tM.toFixed(1)+' ms');
+    setText('pdTD',t.tD.toFixed(1)+' ms');
+    setText('pdDelta',(t.delta>=0?'+':'')+t.delta.toFixed(1)+' ms');
+    setText('pdSugg',t.correct.toFixed(1)+' ms');
+    const a=Math.abs(t.delta);
+    setText('pdStatus', a<=5 ? 'aligned — tower disappears ✓' :
+      a<=30 ? 'precedence window — image pulled, comb coloration' :
+      'distinct slap echo');
+  }
+  ['pdTower','pdListen','pdDelay'].forEach(id=>on(id,'input',updateInfo));
+  on('pdAuto','click',()=>{
+    const el=$('pdDelay');
+    el.value=(P.tower/V*1000).toFixed(1);
+    updateInfo();
+  });
+  on('pdFire','click',()=>{
+    ensureAudio(); ctx.resume();
+    const t=times();
+    clickAt(0.5, t.tM/1000);          // mains arrival at listener
+    clickAt(0.6, t.tD/1000);          // tower arrival at listener
+    P.fired=true; P.t0=performance.now();
+  });
+
+  function draw(){
+    if(!cv.ctx) return;
+    const G=cv.ctx,w=cv.w,h=cv.h;
+    G.clearRect(0,0,w,h);
+    const sc=(w-70)/60, gy=h-70, x0=40;
+    const X=m=>x0+m*sc;
+
+    // ground + distance ticks
+    G.strokeStyle=COLOR.rim; G.lineWidth=2;
+    G.beginPath(); G.moveTo(x0-10,gy); G.lineTo(w-20,gy); G.stroke();
+    G.fillStyle=COLOR.paperDim; G.font=`10px ${FONT_MONO}`; G.textAlign='center';
+    for(let m=0;m<=60;m+=10){ G.fillText(m+'m',X(m),gy+18); G.strokeStyle=COLOR.grid; G.beginPath(); G.moveTo(X(m),gy); G.lineTo(X(m),gy+5); G.stroke(); }
+
+    // stage + mains
+    G.fillStyle='rgba(255,255,255,0.06)'; G.fillRect(x0-24,gy-46,26,46);
+    G.fillStyle=COLOR.teal; G.fillRect(X(0)-4,gy-34,8,18);
+    G.fillStyle=COLOR.paperDim; G.textAlign='left'; G.fillText('mains',X(0)+8,gy-24);
+
+    // tower
+    G.strokeStyle=COLOR.amber; G.lineWidth=3;
+    G.beginPath(); G.moveTo(X(P.tower),gy); G.lineTo(X(P.tower),gy-30); G.stroke();
+    G.fillStyle=COLOR.amber; G.fillRect(X(P.tower)-4,gy-40,8,12);
+    G.fillStyle=COLOR.paperDim; G.fillText('tower',X(P.tower)+8,gy-30);
+
+    // listener
+    G.fillStyle=COLOR.paper; G.beginPath(); G.arc(X(P.listen),gy-14,6,0,Math.PI*2); G.fill();
+    G.fillText('listener',X(P.listen)+10,gy-10);
+
+    // pulses
+    if(P.fired){
+      const e=(performance.now()-P.t0)/1000;
+      const xm=V*e, xd=P.tower+V*(e-P.delay/1000);
+      if(xm>P.listen+4 && xd>P.listen+4) P.fired=false;
+      if(xm<=60){ G.fillStyle=COLOR.teal; G.shadowColor=COLOR.teal; G.shadowBlur=10;
+        G.beginPath(); G.arc(X(Math.min(xm,60)),gy-14,5,0,Math.PI*2); G.fill(); G.shadowBlur=0; }
+      if(e>P.delay/1000 && xd<=60){ G.fillStyle=COLOR.amber; G.shadowColor=COLOR.amber; G.shadowBlur=10;
+        G.beginPath(); G.arc(X(Math.max(0,Math.min(xd,60))),gy-14,5,0,Math.PI*2); G.fill(); G.shadowBlur=0; }
+    }
+
+    // IR inset at listener
+    const t=times();
+    const iw=Math.min(240,w*0.35), ih=70, ix=w-iw-24, iy=20;
+    G.fillStyle='rgba(11,14,19,0.55)'; G.fillRect(ix,iy,iw,ih);
+    G.strokeStyle=COLOR.grid; G.strokeRect(ix,iy,iw,ih);
+    const maxT=Math.max(t.tM,t.tD)+15;
+    const spike=(ms,col,label)=>{
+      const x=ix+8+(ms/maxT)*(iw-16);
+      G.strokeStyle=col; G.lineWidth=2;
+      G.beginPath(); G.moveTo(x,iy+ih-8); G.lineTo(x,iy+12); G.stroke();
+      G.fillStyle=col; G.font=`9px ${FONT_MONO}`; G.textAlign='center'; G.fillText(label,x,iy+ih-12<iy+8?iy+8:iy+ih+0); 
+    };
+    G.fillStyle=COLOR.paperDim; G.font=`9px ${FONT_MONO}`; G.textAlign='left';
+    G.fillText('IR at listener',ix+6,iy+12);
+    spike(t.tM,COLOR.teal,''); spike(t.tD,COLOR.amber,'');
+    G.textAlign='center';
+    G.fillStyle=COLOR.teal;  G.fillText('M',ix+8+(t.tM/maxT)*(iw-16),iy+ih-1);
+    G.fillStyle=COLOR.amber; G.fillText('T',ix+8+(t.tD/maxT)*(iw-16),iy+ih-1);
+  }
+
+  let last=0;
+  function loop(now){
+    const dt=now-last; last=now;
+    if(dt>0&&dt<100) draw();
+    requestAnimationFrame(loop);
+  }
+  updateInfo(); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

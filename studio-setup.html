@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bedroom Studio Planner — Yell Entertainment Interactive Lab</title>
+<link rel="icon" type="image/png" href="yell-logo.png">
+<meta property="og:title" content="Bedroom Studio Planner — Yell Entertainment Lab">
+<meta property="og:description" content="Speaker placement, first-reflection points and treatment for small rooms — interactive.">
+<meta property="og:image" content="og-image.png">
+<style>
+  :root{
+    --bg:#f6f4ef;
+    --card:#ffffff;
+    --line:#e7e2d8;
+    --ink:#2b2a26;
+    --muted:#8b877e;
+    --teal:#1e857a;
+    --teal-soft:#e3f0ee;
+    --amber:#ee8c12;
+    --amber-soft:#fdeeda;
+    --shadow:0 10px 30px rgba(80,65,40,.10);
+    --radius:16px;
+    --mono: ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;
+    --sans: -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;color:var(--ink);font-family:var(--sans);}
+  body{background:
+    radial-gradient(900px 500px at 88% -10%, rgba(238,140,18,.07), transparent 60%),
+    radial-gradient(1000px 640px at -12% 34%, rgba(30,133,122,.08), transparent 60%),
+    var(--bg);}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .app{max-width:1080px;margin:0 auto;padding:32px 24px 60px;}
+
+  .app-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:6px 4px 18px;}
+  .overline{margin:0 0 6px;font-family:var(--mono);font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal);}
+  h1{font-size:1.5rem;font-weight:700;letter-spacing:-0.01em;margin:0 0 6px;color:var(--ink);}
+  .subtitle{margin:0;color:var(--muted);font-size:0.8rem;font-family:var(--mono);}
+  .brand-rule{height:2px;border-radius:1px;margin:0 0 24px;background:linear-gradient(90deg,var(--teal),var(--amber));opacity:.85;}
+  .master-vol{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow);}
+  .master-vol label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:var(--mono);}
+
+  .app-footer{display:flex;justify-content:center;margin-top:40px;padding-top:24px;border-top:1px solid var(--line);}
+  .brand-logo{height:150px;width:auto;display:block;border-radius:18px;box-shadow:var(--shadow), 0 0 0 1px var(--line);}
+
+  .caption{color:var(--muted);font-size:0.95rem;line-height:1.6;max-width:700px;margin:0 0 22px;}
+  .caption em{color:var(--ink);font-style:normal;font-weight:600;}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .controls-row{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:12px;padding:18px 20px;}
+  .info-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px;padding:12px 16px;}
+  .info-row .info-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-family:var(--mono);margin-right:6px;}
+
+  .btn-group{display:flex;gap:8px;flex-wrap:wrap;}
+  .shape-btn{background:var(--card);border:1px solid var(--line);color:var(--muted);padding:9px 16px;border-radius:999px;font-size:0.78rem;font-family:var(--mono);cursor:pointer;transition:all .15s;}
+  .shape-btn:hover{color:var(--ink);border-color:var(--teal);}
+  .shape-btn.active{color:#fff;background:var(--teal);border-color:var(--teal);font-weight:700;box-shadow:0 6px 16px rgba(30,133,122,.28);}
+
+  .slider-group{display:flex;flex-direction:column;gap:8px;min-width:170px;flex:1;}
+  .slider-group .label-row{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);font-family:var(--mono);}
+  .slider-group .val{color:var(--amber);font-weight:700;}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:#e3ddd2;border-radius:2px;outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--teal);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 8px rgba(30,133,122,.35);}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--teal);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 8px rgba(30,133,122,.35);}
+
+  .play-btn{background:var(--teal);color:#fff;border:none;padding:12px 24px;border-radius:999px;font-size:0.78rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 6px 16px rgba(30,133,122,.28);}
+  .play-btn:hover{filter:brightness(1.08);}
+  .play-btn:active{transform:scale(0.97);}
+  .play-btn.fire{background:var(--amber);box-shadow:0 6px 16px rgba(238,140,18,.3);}
+
+  .readout{font-family:var(--mono);font-size:0.78rem;color:var(--ink);background:#faf8f4;border:1px solid var(--line);padding:9px 14px;border-radius:10px;}
+  .readout .hi{color:var(--amber);font-weight:700;}
+
+  .viz{padding:16px 18px;margin-bottom:14px;}
+  .viz h4{margin:0 0 12px;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;font-family:var(--mono);}
+  canvas{width:100%;height:360px;display:block;border-radius:12px;background:
+    linear-gradient(180deg,#fbf9f5 0%,#f4efe6 100%);border:1px solid var(--line);}
+
+  @media (max-width:640px){
+    .controls-row{flex-direction:column;align-items:stretch;}
+    .slider-group{min-width:100%;}
+    .brand-logo{height:120px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <div>
+      <p class="overline">Yell Entertainment · Room Lab</p>
+      <h1>Bedroom Studio Planner</h1>
+      <p class="subtitle">speaker placement · first reflections · treatment · room modes</p>
+    </div>
+    <div class="master-vol">
+      <label for="masterVol">Master</label>
+      <input type="range" id="masterVol" min="0" max="100" value="70" style="width:90px;" aria-label="Master volume">
+    </div>
+  </header>
+  <div class="brand-rule" aria-hidden="true"></div>
+
+  <p class="caption">Place your monitors and mix position, then treat the points where sound <em>actually</em> bounces — the mirror points on the side walls and ceiling. Panels go where the reflections happen, not randomly on empty wall. The stereo test lets you hear an off-centre couch shift the image; the reflection test lets you hear a side panel eat the slap.</p>
+
+  <div class="card controls-row">
+    <div class="slider-group">
+      <div class="label-row"><span>Room width</span><span class="val" id="ssWVal">3.0 m</span></div>
+      <input type="range" id="ssW" min="2" max="5" step="0.1" value="3" aria-label="Room width">
+    </div>
+    <div class="slider-group">
+      <div class="label-row"><span>Room length</span><span class="val" id="ssLVal">4.0 m</span></div>
+      <input type="range" id="ssL" min="2.5" max="6" step="0.1" value="4" aria-label="Room length">
+    </div>
+    <div class="slider-group">
+      <div class="label-row"><span>Speaker spacing</span><span class="val" id="ssSpVal">1.40 m</span></div>
+      <input type="range" id="ssSp" min="0.8" max="2" step="0.05" value="1.4" aria-label="Speaker spacing">
+    </div>
+    <div class="slider-group">
+      <div class="label-row"><span>Listening distance</span><span class="val" id="ssLdVal">2.20 m</span></div>
+      <input type="range" id="ssLd" min="1" max="4.5" step="0.05" value="2.2" aria-label="Listening distance from front wall">
+    </div>
+    <div class="slider-group">
+      <div class="label-row"><span>Listener offset</span><span class="val" id="ssOffVal">0.00 m</span></div>
+      <input type="range" id="ssOff" min="-0.75" max="0.75" step="0.05" value="0" aria-label="Listener offset from centre">
+    </div>
+  </div>
+
+  <div class="card controls-row">
+    <div class="btn-group" id="ssPanels">
+      <button class="shape-btn active" data-p="side">Side panels @ mirror points</button>
+      <button class="shape-btn" data-p="cloud">Ceiling cloud</button>
+      <button class="shape-btn" data-p="front">Front wall panels</button>
+      <button class="shape-btn" data-p="rear">Rear panel</button>
+      <button class="shape-btn" data-p="traps">Corner bass traps</button>
+    </div>
+    <button class="play-btn" id="ssStereo">▶ Stereo image test</button>
+    <button class="play-btn fire" id="ssRefl">⚡ Hear 1st reflection</button>
+  </div>
+
+  <div class="card info-row">
+    <span class="info-label">Display</span>
+    <div class="readout">stereo angle = <span class="hi" id="ssAngle">60°</span></div>
+    <div class="readout">L–R arrival Δ = <span class="hi" id="ssDelta">0.00 ms</span></div>
+    <div class="readout">reflections treated = <span class="hi" id="ssTreated">2/3</span></div>
+    <div class="readout">axial modes (L/W/H) = <span class="hi" id="ssModes">43 / 57 / 71 Hz</span></div>
+  </div>
+
+  <div class="card viz">
+    <h4>Top-down view · dashed = first-reflection paths · orange = treatment</h4>
+    <canvas id="cvStudio"></canvas>
+  </div>
+
+  <footer class="app-footer">
+    <img class="brand-logo" src="yell-logo.png" alt="Yell Entertainment — Your Sound, Your Story!!">
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const V=343, H_ROOM=2.4, SPK_Y=0.7;
+  const C={ ink:'#4a463d', muted:'#8b877e', amber:'#ee8c12', teal:'#1e857a',
+            grid:'rgba(74,70,61,0.14)', wall:'#5b574e',
+            floor:'#f3ede1', rug:'#ece4d4', desk:'#dcc9a8', deskEdge:'#c9b58f' };
+  const FONT_MONO="ui-monospace,'SF Mono',Menlo,Consolas,monospace";
+  function $(id){return document.getElementById(id);}
+  function setText(id,s){const el=$(id); if(el&&el.textContent!==s) el.textContent=s;}
+  function on(id,ev,fn){const el=$(id); if(el) el.addEventListener(ev,fn); return el;}
+
+  // ---------------- audio ----------------
+  let ctx=null, masterGain=null, limiter=null, noiseBuf=null;
+  function ensureAudio(){
+    if(ctx) return;
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    masterGain=ctx.createGain(); masterGain.gain.value=($('masterVol')? +$('masterVol').value:70)/100;
+    limiter=ctx.createDynamicsCompressor();
+    limiter.threshold.value=-6; limiter.knee.value=0; limiter.ratio.value=20;
+    masterGain.connect(limiter); limiter.connect(ctx.destination);
+  }
+  on('masterVol','input',e=>{ if(masterGain) masterGain.gain.setTargetAtTime(e.target.value/100,ctx.currentTime,0.02); });
+  function makePink(sec){
+    const sr=ctx.sampleRate,len=Math.floor(sr*sec),b=ctx.createBuffer(1,len,sr),d=b.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for(let i=0;i<len;i++){const w=Math.random()*2-1;
+      b0=0.99886*b0+w*0.0555179;b1=0.99332*b1+w*0.0750759;b2=0.96900*b2+w*0.1538520;
+      b3=0.86650*b3+w*0.3104856;b4=0.55000*b4+w*0.5329522;b5=-0.7616*b5-w*0.0168980;
+      d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;b6=w*0.115926;}
+    return b;
+  }
+  function burstPan(vol,delay,pan){
+    if(!ctx) return;
+    if(!noiseBuf) noiseBuf=makePink(0.3);
+    const t=ctx.currentTime+Math.max(0,delay);
+    const s=ctx.createBufferSource(); s.buffer=noiseBuf;
+    const g=ctx.createGain(); g.gain.value=vol; s.connect(g);
+    let out=g;
+    if(ctx.createStereoPanner){const p=ctx.createStereoPanner(); p.pan.value=pan; g.connect(p); out=p;}
+    out.connect(masterGain); s.start(t);
+  }
+  function clickPan(vol,delay,pan){
+    if(!ctx) return;
+    const t=ctx.currentTime+Math.max(0,delay);
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='square'; o.frequency.value=800;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(0.12*vol,t+0.002);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.05);
+    o.connect(g); let out=g;
+    if(ctx.createStereoPanner){const p=ctx.createStereoPanner(); p.pan.value=pan; g.connect(p); out=p;}
+    out.connect(masterGain); o.start(t); o.stop(t+0.06);
+  }
+
+  // ---------------- canvas ----------------
+  const cv={el:$('cvStudio'),ctx:null,w:0,h:0};
+  function resize(){
+    const dpr=window.devicePixelRatio||1,r=cv.el.getBoundingClientRect();
+    cv.w=Math.max(r.width,50); cv.h=Math.max(r.height,50);
+    cv.el.width=cv.w*dpr; cv.el.height=cv.h*dpr;
+    cv.ctx=cv.el.getContext('2d'); cv.ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize',resize); resize();
+
+  const S={ w:3, l:4, sp:1.4, ld:2.2, off:0,
+            panels:{side:true,cloud:false,front:false,rear:false,traps:false} };
+
+  // clean geometry: speakers, listener, stereo angle, side-wall mirror points
+  function geo(){
+    const w=S.w, l=Math.max(S.ld+0.6, S.l);
+    const sl={x:w/2-S.sp/2, y:SPK_Y};
+    const sr={x:w/2+S.sp/2, y:SPK_Y};
+    const L ={x:w/2+S.off, y:Math.min(S.ld, l-0.3)};
+    const d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+    const dL=d(sl,L), dR=d(sr,L);
+    const va={x:sl.x-L.x,y:sl.y-L.y}, vb={x:sr.x-L.x,y:sr.y-L.y};
+    const cos=(va.x*vb.x+va.y*vb.y)/(dL*dR);
+    const angle=Math.acos(Math.min(1,Math.max(-1,cos)))*180/Math.PI;
+    const tL=sl.x/(L.x+sl.x);
+    const pL={x:0, y:sl.y+tL*(L.y-sl.y)};
+    const imR=2*w-sr.x;
+    const tR=(w-imR)/(L.x-imR);
+    const pR={x:w, y:sr.y+tR*(L.y-sr.y)};
+    return {w,l,sl,sr,L,dL,dR,angle,pL,pR};
+  }
+
+  function updateInfo(){
+    S.w=+($('ssW')? $('ssW').value:3); S.l=+($('ssL')? $('ssL').value:4);
+    S.sp=+($('ssSp')? $('ssSp').value:1.4); S.ld=+($('ssLd')? $('ssLd').value:2.2);
+    S.off=+($('ssOff')? $('ssOff').value:0);
+    setText('ssWVal',S.w.toFixed(1)+' m'); setText('ssLVal',S.l.toFixed(1)+' m');
+    setText('ssSpVal',S.sp.toFixed(2)+' m'); setText('ssLdVal',S.ld.toFixed(2)+' m');
+    setText('ssOffVal',S.off.toFixed(2)+' m');
+    const g=geo();
+    setText('ssAngle',Math.round(g.angle)+'°'+(Math.abs(g.angle-60)<=10?' ✓':' (aim 60°)'));
+    setText('ssDelta',Math.abs((g.dR-g.dL)*1000/V).toFixed(2)+' ms');
+    const treated=(S.panels.side?2:0)+(S.panels.cloud?1:0);
+    setText('ssTreated',treated+'/3');
+    setText('ssModes',Math.round(V/(2*S.l))+' / '+Math.round(V/(2*S.w))+' / '+Math.round(V/(2*H_ROOM))+' Hz');
+  }
+  ['ssW','ssL','ssSp','ssLd','ssOff'].forEach(id=>on(id,'input',updateInfo));
+  document.querySelectorAll('#ssPanels .shape-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      btn.classList.toggle('active');
+      S.panels[btn.dataset.p]=btn.classList.contains('active');
+      updateInfo();
+    });
+  });
+
+  on('ssStereo','click',()=>{
+    ensureAudio(); ctx.resume();
+    const g=geo(), dmin=Math.min(g.dL,g.dR);
+    burstPan(0.5*(dmin/g.dL), (g.dL-dmin)/V, -0.7);
+    burstPan(0.5*(dmin/g.dR), (g.dR-dmin)/V,  0.7);
+  });
+  on('ssRefl','click',()=>{
+    ensureAudio(); ctx.resume();
+    const g=geo();
+    clickPan(0.8,0,-0.4);
+    const path=Math.hypot(g.sl.x-g.pL.x,g.sl.y-g.pL.y)+Math.hypot(g.pL.x-g.L.x,g.pL.y-g.L.y);
+    clickPan(S.panels.side?0.1:0.35, (path-g.dL)/V, -0.4);
+  });
+
+  // ---------------- draw ----------------
+  function draw(){
+    if(!cv.ctx) return;
+    const g=geo(), G=cv.ctx, w=cv.w, h=cv.h;
+    G.clearRect(0,0,w,h);
+    const sc=Math.min((w-50)/g.w,(h-50)/g.l);
+    const ox=(w-g.w*sc)/2, oy=(h-g.l*sc)/2;
+    const X=x=>ox+x*sc, Y=y=>oy+y*sc;
+
+    // floor + rug + desk (calm interior vibe)
+    G.fillStyle=C.floor; G.fillRect(ox,oy,g.w*sc,g.l*sc);
+    G.fillStyle=C.rug;
+    G.fillRect(X(g.L.x-1.1),Y(g.L.y-0.5),2.2*sc,1.7*sc);
+    G.fillStyle=C.desk; G.strokeStyle=C.deskEdge; G.lineWidth=1.5;
+    G.fillRect(X(g.L.x-0.65),Y(g.L.y+0.25),1.3*sc,0.55*sc);
+    G.strokeRect(X(g.L.x-0.65),Y(g.L.y+0.25),1.3*sc,0.55*sc);
+
+    // walls + centre line
+    G.strokeStyle=C.wall; G.lineWidth=4; G.strokeRect(ox,oy,g.w*sc,g.l*sc);
+    G.setLineDash([4,6]); G.strokeStyle=C.grid; G.lineWidth=1;
+    G.beginPath(); G.moveTo(X(g.w/2),oy); G.lineTo(X(g.w/2),oy+g.l*sc); G.stroke();
+    G.setLineDash([]);
+
+    // first-reflection paths
+    const path=(P,Sp)=>{ G.beginPath(); G.moveTo(X(Sp.x),Y(Sp.y)); G.lineTo(X(P.x),Y(P.y)); G.lineTo(X(g.L.x),Y(g.L.y)); G.stroke(); };
+    G.setLineDash([3,5]); G.lineWidth=1.4;
+    G.strokeStyle=S.panels.side?'rgba(238,140,18,0.45)':'rgba(30,133,122,0.55)';
+    path(g.pL,g.sl); path(g.pR,g.sr);
+    G.setLineDash([]);
+
+    // treatment
+    if(S.panels.side){
+      G.strokeStyle=C.amber; G.lineWidth=7; G.lineCap='round';
+      G.beginPath(); G.moveTo(X(0),Y(g.pL.y-0.6)); G.lineTo(X(0),Y(g.pL.y+0.6)); G.stroke();
+      G.beginPath(); G.moveTo(X(g.w),Y(g.pR.y-0.6)); G.lineTo(X(g.w),Y(g.pR.y+0.6)); G.stroke();
+      G.lineCap='butt';
+    }
+    if(S.panels.cloud){
+      const cx=((g.sl.x+g.sr.x)/2+g.L.x)/2, cy=(SPK_Y+g.L.y)/2;
+      G.setLineDash([6,5]); G.strokeStyle=C.amber; G.lineWidth=2.5;
+      G.strokeRect(X(cx-0.6),Y(cy-0.6),1.2*sc,1.2*sc); G.setLineDash([]);
+      G.fillStyle=C.muted; G.font=`10px ${FONT_MONO}`; G.textAlign='left';
+      G.fillText('ceiling cloud',X(cx-0.6),Y(cy-0.6)-6);
+    }
+    if(S.panels.front){
+      G.strokeStyle=C.amber; G.lineWidth=7; G.lineCap='round';
+      G.beginPath(); G.moveTo(X(g.sl.x-0.3),Y(0)); G.lineTo(X(g.sl.x+0.3),Y(0)); G.stroke();
+      G.beginPath(); G.moveTo(X(g.sr.x-0.3),Y(0)); G.lineTo(X(g.sr.x+0.3),Y(0)); G.stroke();
+      G.lineCap='butt';
+    }
+    if(S.panels.rear){
+      G.strokeStyle=C.amber; G.lineWidth=7; G.lineCap='round';
+      G.beginPath(); G.moveTo(X(g.w/2-0.6),Y(g.l)); G.lineTo(X(g.w/2+0.6),Y(g.l)); G.stroke();
+      G.lineCap='butt';
+    }
+    if(S.panels.traps){
+      G.strokeStyle=C.amber; G.lineWidth=3.5;
+      [[ox,oy,0],[ox+g.w*sc,oy,Math.PI/2],[ox+g.w*sc,oy+g.l*sc,Math.PI],[ox,oy+g.l*sc,Math.PI*1.5]].forEach(c=>{
+        G.beginPath(); G.arc(c[0],c[1],0.35*sc,c[2],c[2]+Math.PI/2); G.stroke();
+      });
+    }
+
+    // speakers toed-in to listener
+    [g.sl,g.sr].forEach(sp=>{
+      const a=Math.atan2(g.L.y-sp.y,g.L.x-sp.x);
+      G.save(); G.translate(X(sp.x),Y(sp.y)); G.rotate(a);
+      G.fillStyle=C.teal; G.fillRect(-7,-8,14,16);
+      G.beginPath(); G.moveTo(7,-8); G.lineTo(14,0); G.lineTo(7,8); G.closePath(); G.fill();
+      G.restore();
+    });
+
+    // listener
+    G.fillStyle=C.amber; G.beginPath(); G.arc(X(g.L.x),Y(g.L.y),6,0,Math.PI*2); G.fill();
+    G.strokeStyle='#fff'; G.lineWidth=2; G.beginPath(); G.arc(X(g.L.x),Y(g.L.y),8,0,Math.PI*2); G.stroke();
+
+    G.fillStyle=C.muted; G.font=`10px ${FONT_MONO}`; G.textAlign='left';
+    G.fillText('front wall',ox+8,oy-8);
+    G.fillText('mix position',X(g.L.x)+14,Y(g.L.y)+4);
+  }
+
+  let last=0;
+  function loop(now){
+    const dt=now-last; last=now;
+    if(dt>0&&dt<100) draw();
+    requestAnimationFrame(loop);
+  }
+  updateInfo(); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
