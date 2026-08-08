@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yell Entertainment — Interactive Audio Labs</title>
+<link rel="icon" type="image/png" href="yell-logo.png">
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a20; --line:#262a33;
+    --amber:#ee8c12; --teal:#2cc4b2; --teal-dim:#1e857a;
+    --paper:#f2efe8; --paper-dim:#8f8a82;
+    --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--paper);font-family:var(--sans);}
+  .app{max-width:860px;margin:0 auto;padding:48px 24px 60px;}
+  .hero{display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .logo{height:220px;width:auto;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.45);}
+  h1{font-family:var(--mono);font-size:1.3rem;letter-spacing:0.1em;text-transform:uppercase;margin:26px 0 6px;}
+  .sub{color:var(--paper-dim);font-family:var(--mono);font-size:0.8rem;margin:0 0 30px;}
+  .rule{height:2px;width:120px;border-radius:1px;background:linear-gradient(90deg,var(--teal-dim),var(--amber));margin-bottom:30px;}
+  .cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;width:100%;}
+  .card{flex:1;min-width:260px;max-width:380px;display:flex;flex-direction:column;gap:8px;padding:20px 22px;background:var(--panel);border:1px solid var(--line);border-radius:12px;text-decoration:none;transition:border-color .15s, transform .15s;}
+  .card:hover{border-color:var(--teal-dim);transform:translateY(-2px);}
+  .card-title{font-family:var(--mono);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--amber);}
+  .card-desc{font-family:var(--mono);font-size:0.75rem;color:var(--paper-dim);line-height:1.5;}
+  .card-cta{font-family:var(--mono);font-size:0.72rem;color:var(--teal);margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <main class="hero">
+    <img class="logo" src="yell-logo.png" alt="Yell Entertainment — Your Sound, Your Story!!">
+    <h1>Interactive Audio Labs</h1>
+    <p class="sub">hands-on physics of sound · your sound, your story!!</p>
+    <div class="rule" aria-hidden="true"></div>
+    <div class="cards">
+      <a class="card" href="sound-space.html">
+        <span class="card-title">Sound &amp; Space</span>
+        <span class="card-desc">Frequency &amp; pitch · wavelength · speed &amp; delay · the wave equation λ = v / f</span>
+        <span class="card-cta">Open lab →</span>
+      </a>
+      <a class="card" href="phase-wheel.html">
+        <span class="card-title">Phase Wheel</span>
+        <span class="card-desc">The wheel · phase offset · phase ↔ time · XY scope · comb filter with pink noise</span>
+        <span class="card-cta">Open lab →</span>
+      </a>
+    </div>
+  </main>
+</div>
+</body>
+</html>

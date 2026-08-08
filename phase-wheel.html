@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase Wheel — Yell Entertainment Interactive Lab</title>
+<link rel="icon" type="image/png" href="yell-logo.png">
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#171a20;
+    --panel-2:#1d212a;
+    --line:#262a33;
+    --amber:#ee8c12;
+    --amber-dim:#8a5410;
+    --teal:#2cc4b2;
+    --teal-dim:#1e857a;
+    --paper:#f2efe8;
+    --paper-dim:#8f8a82;
+    --danger:#e0645a;
+    --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--paper);font-family:var(--sans);}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .app{max-width:1080px;margin:0 auto;padding:28px 24px 60px;}
+
+  .app-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding-bottom:18px;}
+  h1{font-family:var(--mono);font-size:1.25rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 6px;}
+  .subtitle{margin:0;color:var(--paper-dim);font-size:0.78rem;font-family:var(--mono);}
+  .brand-rule{height:2px;border-radius:1px;background:linear-gradient(90deg,var(--teal-dim),var(--amber));margin-bottom:20px;}
+  .master-vol{display:flex;align-items:center;gap:10px;}
+  .master-vol label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--paper-dim);font-family:var(--mono);}
+
+  .app-footer{display:flex;justify-content:center;border-top:1px solid var(--line);margin-top:36px;padding-top:22px;}
+  .brand-logo{height:160px;width:auto;display:block;border-radius:12px;box-shadow:0 2px 14px rgba(0,0,0,0.35);}
+
+  .tabs{display:flex;gap:4px;margin-bottom:22px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .tab-btn{background:none;border:none;color:var(--paper-dim);padding:10px 16px;font-size:0.72rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s, border-color .15s;}
+  .tab-btn:hover{color:var(--paper);}
+  .tab-btn.active{color:var(--amber);border-bottom-color:var(--amber);}
+
+  .panel{display:none;}
+  .panel.active{display:block;animation:fade .2s ease;}
+  @keyframes fade{from{opacity:0;}to{opacity:1;}}
+  @media (prefers-reduced-motion: reduce){ .panel.active{animation:none;} }
+
+  .caption{color:var(--paper-dim);font-size:0.92rem;line-height:1.55;max-width:640px;margin:0 0 20px;}
+
+  .controls-row{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:12px;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;}
+  .info-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;}
+  .info-row .info-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--paper-dim);font-family:var(--mono);margin-right:6px;}
+
+  .btn-group{display:flex;gap:6px;flex-wrap:wrap;}
+  .shape-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--paper-dim);padding:9px 16px;border-radius:7px;font-size:0.78rem;font-family:var(--mono);cursor:pointer;transition:all .15s;}
+  .shape-btn:hover{color:var(--paper);border-color:var(--teal-dim);}
+  .shape-btn.active{color:var(--bg);background:var(--teal);border-color:var(--teal);font-weight:700;}
+
+  .slider-group{display:flex;flex-direction:column;gap:7px;min-width:200px;flex:1;}
+  .slider-group .label-row{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--paper-dim);font-family:var(--mono);}
+  .slider-group .val{color:var(--amber);}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:var(--line);border-radius:2px;outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--teal);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg);}
+
+  .play-btn{background:var(--teal);color:#08211d;border:none;padding:11px 24px;border-radius:7px;font-size:0.78rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;cursor:pointer;transition:background .15s, transform .1s;}
+  .play-btn:hover{background:#3fe0ca;}
+  .play-btn:active{transform:scale(0.97);}
+  .play-btn.playing{background:var(--danger);color:#2c0e0c;}
+  .play-btn.playing:hover{background:#ea7d74;}
+  .play-btn.sweep{background:var(--amber);color:#2c1a05;}
+  .play-btn.sweep:hover{background:#f7a03a;}
+
+  .readout{font-family:var(--mono);font-size:0.78rem;color:var(--paper);background:var(--panel-2);border:1px solid var(--line);padding:9px 14px;border-radius:7px;}
+  .readout .hi{color:var(--amber);font-weight:700;}
+
+  .viz{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+  .viz h4{margin:0 0 10px;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--paper-dim);font-weight:600;font-family:var(--mono);}
+  canvas{width:100%;height:260px;display:block;}
+
+  @media (max-width:640px){
+    .controls-row{flex-direction:column;align-items:stretch;}
+    .slider-group{min-width:100%;}
+    .brand-logo{height:130px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <div>
+      <h1>Phase Wheel</h1>
+      <p class="subtitle">5 interactive sims · rotation, offset, time delay, XY phase &amp; comb filtering</p>
+    </div>
+    <div class="master-vol">
+      <label for="masterVol">Master</label>
+      <input type="range" id="masterVol" min="0" max="100" value="70" style="width:90px;" aria-label="Master volume">
+    </div>
+  </header>
+  <div class="brand-rule" aria-hidden="true"></div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="wheel">The Wheel</button>
+    <button class="tab-btn" data-tab="offset">Phase Offset</button>
+    <button class="tab-btn" data-tab="time">Phase ↔ Time</button>
+    <button class="tab-btn" data-tab="xy">XY Scope</button>
+    <button class="tab-btn" data-tab="comb">Comb Filter</button>
+  </nav>
+
+  <main>
+    <!-- MODULE 1: THE WHEEL -->
+    <section class="panel active" id="panel-wheel">
+      <p class="caption">Every sine wave begins as a rotation. A point spinning on the phase wheel casts a vertical shadow that traces a sine — the angle of the point at any instant is the phase. The scrub slider sets the phase (even mid-play, the wheel resumes from where you place it); the display card shows the live angle.</p>
+
+      <div class="controls-row">
+        <div class="slider-group">
+          <div class="label-row"><span>Frequency</span><span class="val" id="m1FreqVal">220 Hz</span></div>
+          <input type="range" id="m1Freq" min="20" max="600" step="1" value="220" aria-label="Frequency in Hz">
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Angle (scrub)</span><span class="val" id="m1AngleVal">0°</span></div>
+          <input type="range" id="m1Angle" min="0" max="360" step="1" value="0" aria-label="Phase angle in degrees">
+        </div>
+        <button class="play-btn" id="playM1">▶ Play</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">θ = <span class="hi" id="m1Theta">0°</span></div>
+        <div class="readout"><span class="hi" id="m1Rad">0.00</span> rad</div>
+        <div class="readout">T = <span class="hi" id="m1Period">4.55 ms</span></div>
+      </div>
+
+      <div class="viz">
+        <h4>Phase wheel → sine projection · wheel shown in slow motion (÷100), tone at true speed</h4>
+        <canvas id="cvWheel"></canvas>
+      </div>
+    </section>
+
+    <!-- MODULE 2: PHASE OFFSET -->
+    <section class="panel" id="panel-offset">
+      <p class="caption">Two phasors on the same wheel, held a fixed angle apart. Their projections add: aligned (0°) they double, opposed (180°) they cancel. Sweep the offset and listen to the sum swell and collapse at 220 Hz.</p>
+
+      <div class="controls-row">
+        <div class="slider-group">
+          <div class="label-row"><span>Phase offset Δ</span><span class="val" id="m2Val">0°</span></div>
+          <input type="range" id="m2Phase" min="0" max="360" step="1" value="0" aria-label="Phase offset in degrees">
+        </div>
+        <button class="play-btn" id="playM2">▶ Play</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout" id="m2Readout">Combined amplitude: <span class="hi">200%</span> of one tone — constructive</div>
+      </div>
+
+      <div class="viz">
+        <h4>Wheel: A (teal) · B (amber) · sum vector (bright) — projections at right</h4>
+        <canvas id="cvOffset"></canvas>
+      </div>
+    </section>
+
+    <!-- MODULE 3: PHASE <-> TIME -->
+    <section class="panel" id="panel-time">
+      <p class="caption">Phase is also time. An offset of Δ degrees is a delay of Δt = (Δ/360) / f seconds. The same angle means a very different delay at 100 Hz than at 2 kHz — move both sliders and watch the gap between the waves.</p>
+
+      <div class="controls-row">
+        <div class="slider-group">
+          <div class="label-row"><span>Phase offset Δ</span><span class="val" id="m3PhaseVal">90°</span></div>
+          <input type="range" id="m3Phase" min="0" max="360" step="1" value="90" aria-label="Phase offset in degrees">
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Frequency</span><span class="val" id="m3FreqVal">440 Hz</span></div>
+          <input type="range" id="m3Freq" min="100" max="2000" step="5" value="440" aria-label="Frequency in Hz">
+        </div>
+        <button class="play-btn" id="playM3">▶ Play</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">Δt = <span class="hi" id="m3Dt">0.57 ms</span></div>
+        <div class="readout">≈ <span class="hi" id="m3Samples">27</span> samples @48 kHz</div>
+      </div>
+
+      <div class="viz">
+        <h4>Time domain — B (amber) lags A (teal) by Δt</h4>
+        <canvas id="cvTime"></canvas>
+      </div>
+    </section>
+
+    <!-- MODULE 4: XY SCOPE -->
+    <section class="panel" id="panel-xy">
+      <p class="caption">Feed signal A to the horizontal and signal B to the vertical input of a scope. In phase draws a diagonal, 90° draws a circle, 180° draws the opposite diagonal — the classic engineer's phase check.</p>
+
+      <div class="controls-row">
+        <div class="slider-group">
+          <div class="label-row"><span>Phase offset Δ</span><span class="val" id="m4Val">90°</span></div>
+          <input type="range" id="m4Phase" min="0" max="360" step="1" value="90" aria-label="Phase offset in degrees">
+        </div>
+        <button class="play-btn" id="playM4">▶ Play</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">Shape: <span class="hi" id="m4Shape">circle</span></div>
+        <div class="readout">correlation = <span class="hi" id="m4Corr">0.00</span></div>
+      </div>
+
+      <div class="viz">
+        <h4>XY plot — x = sin θ, y = sin(θ + Δ)</h4>
+        <canvas id="cvXY"></canvas>
+      </div>
+    </section>
+
+    <!-- MODULE 5: COMB FILTER -->
+    <section class="panel" id="panel-comb">
+      <p class="caption">A signal added to a delayed copy of itself. Where the delay equals a half-period (180° on the wheel) the two cancel; where it equals a whole period they double. Switch to pink noise to hear the comb as a hollow tonal coloration; sweep the delay by hand and you've built a flanger.</p>
+
+      <div class="controls-row">
+        <div class="btn-group" id="m5SrcBtns">
+          <button class="shape-btn active" data-src="sine">Sine</button>
+          <button class="shape-btn" data-src="pink">Pink noise</button>
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Delay τ (log, 0.01–20 ms)</span><span class="val" id="m5TauVal">2.00 ms</span></div>
+          <input type="range" id="m5Tau" min="0" max="1000" step="1" value="697" aria-label="Delay in milliseconds, logarithmic scale">
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Test frequency</span><span class="val" id="m5FreqVal">1000 Hz</span></div>
+          <input type="range" id="m5Freq" min="20" max="5000" step="5" value="1000" aria-label="Test frequency in Hz">
+        </div>
+        <button class="play-btn" id="playM5">▶ Play</button>
+        <button class="play-btn sweep" id="sweepM5">▶ Sweep</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">1st null: <span class="hi" id="m5Null">250 Hz</span></div>
+        <div class="readout">spacing: <span class="hi" id="m5Spacing">500 Hz</span></div>
+        <div class="readout">gain @ f: <span class="hi" id="m5Gain">200%</span></div>
+      </div>
+
+      <div class="viz">
+        <h4>Frequency response — gain of direct + delayed sum (nulls dashed)</h4>
+        <canvas id="cvComb"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <img class="brand-logo" src="yell-logo.png" alt="Yell Entertainment — Your Sound, Your Story!!">
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const SLOW = 100;          // wheel slow-motion factor
+  const F_REF = 220;         // reference tone for offset & XY modules
+  let activeTab = 'wheel';
+
+  const COLOR = {
+    paper:'#f2efe8', paperDim:'#8f8a82', amber:'#ee8c12', teal:'#2cc4b2',
+    grid:'rgba(242,239,232,0.09)', rim:'rgba(242,239,232,0.28)'
+  };
+  const FONT_MONO = "ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
+
+  // ---------------- audio ----------------
+  let ctx = null, masterGain = null, limiter = null;
+  function ensureAudio(){
+    if(ctx) return;
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = ctx.createGain();
+    masterGain.gain.value = document.getElementById('masterVol').value/100;
+    limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -6; limiter.knee.value = 0; limiter.ratio.value = 20;
+    limiter.attack.value = 0.003; limiter.release.value = 0.15;
+    masterGain.connect(limiter); limiter.connect(ctx.destination);
+  }
+  document.getElementById('masterVol').addEventListener('input', e=>{
+    if(masterGain) masterGain.gain.setTargetAtTime(e.target.value/100, ctx.currentTime, 0.02);
+  });
+  function setParam(param, value, tc){
+    if(!ctx || !param) return;
+    param.setTargetAtTime(value, ctx.currentTime, tc||0.015);
+  }
+
+  // ---------------- canvas helpers ----------------
+  const canvases = [];
+  function reg(id){
+    const el = document.getElementById(id);
+    const c = {el, ctx:null, w:0, h:0};
+    canvases.push(c);
+    resizeOne(c);
+    return c;
+  }
+  function resizeOne(c){
+    const dpr = window.devicePixelRatio||1;
+    const rect = c.el.getBoundingClientRect();
+    const w = Math.max(rect.width, 50), h = Math.max(rect.height, 50);
+    c.el.width = w*dpr; c.el.height = h*dpr;
+    c.ctx = c.el.getContext('2d');
+    c.ctx.setTransform(dpr,0,0,dpr,0,0);
+    c.w = w; c.h = h;
+  }
+  let resizeTO;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(resizeTO);
+    resizeTO = setTimeout(()=>canvases.forEach(resizeOne), 120);
+  });
+  function clear(c){ c.ctx.clearRect(0,0,c.w,c.h); }
+
+  function drawWheelBase(g, cx, cy, R){
+    g.strokeStyle = COLOR.rim; g.lineWidth = 1.5;
+    g.beginPath(); g.arc(cx, cy, R, 0, Math.PI*2); g.stroke();
+    g.strokeStyle = COLOR.grid; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(cx-R, cy); g.lineTo(cx+R, cy); g.stroke();
+    g.beginPath(); g.moveTo(cx, cy-R); g.lineTo(cx, cy+R); g.stroke();
+    for(let a=0; a<360; a+=30){
+      const rad = a*Math.PI/180;
+      const major = a%90===0;
+      const r0 = major ? R-9 : R-5;
+      g.strokeStyle = major ? COLOR.rim : COLOR.grid;
+      g.beginPath();
+      g.moveTo(cx + r0*Math.cos(rad), cy - r0*Math.sin(rad));
+      g.lineTo(cx + R*Math.cos(rad), cy - R*Math.sin(rad));
+      g.stroke();
+    }
+    g.fillStyle = COLOR.paperDim; g.font = `10px ${FONT_MONO}`;
+    g.textAlign='left';  g.fillText('0°',   cx + R + 6, cy + 3);
+    g.textAlign='center';g.fillText('90°',  cx, cy - R - 6);
+    g.textAlign='right'; g.fillText('180°', cx - R - 6, cy + 3);
+    g.textAlign='center';g.fillText('270°', cx, cy + R + 14);
+  }
+
+  function drawPhasor(g, cx, cy, len, deg, color, width){
+    const rad = deg*Math.PI/180;
+    const tx = cx + len*Math.cos(rad), ty = cy - len*Math.sin(rad);
+    g.strokeStyle = color; g.lineWidth = width||2.5;
+    g.beginPath(); g.moveTo(cx, cy); g.lineTo(tx, ty); g.stroke();
+    g.fillStyle = color;
+    g.beginPath(); g.arc(tx, ty, 4.5, 0, Math.PI*2); g.fill();
+    return {x:tx, y:ty};
+  }
+
+  function updatePlayBtn(id, isPlaying){
+    const btn = document.getElementById(id);
+    if(isPlaying){ btn.textContent='■ Stop'; btn.classList.add('playing'); }
+    else { btn.textContent='▶ Play'; btn.classList.remove('playing'); }
+  }
+
+  function stopAllModules(){
+    if(m1.playing) stopM1();
+    if(m2.playing) stopM2();
+    if(m3.playing) stopM3();
+    if(m4.playing) stopM4();
+    if(m5.playing) stopM5();
+  }
+
+  // ================= MODULE 1: THE WHEEL =================
+  const m1 = { f:220, theta:0, playing:false, osc:null, gain:null };
+  const cvWheel = reg('cvWheel');
+  const m1Freq = document.getElementById('m1Freq');
+  const m1Angle = document.getElementById('m1Angle');
+
+  m1Freq.addEventListener('input', e=>{
+    m1.f = +e.target.value;
+    document.getElementById('m1FreqVal').textContent = m1.f + ' Hz';
+    document.getElementById('m1Period').textContent = (1000/m1.f).toFixed(2) + ' ms';
+    if(m1.osc) setParam(m1.osc.frequency, m1.f);
+  });
+  // Scrub slider is user-driven only; the loop never writes back to it.
+  m1Angle.addEventListener('input', e=>{
+    m1.theta = +e.target.value;
+    document.getElementById('m1AngleVal').textContent = Math.round(m1.theta) + '°';
+    updateM1Readout();
+  });
+  function updateM1Readout(){
+    const deg = ((m1.theta % 360) + 360) % 360;
+    document.getElementById('m1Theta').textContent = Math.round(deg) + '°';
+    document.getElementById('m1Rad').textContent = (deg*Math.PI/180).toFixed(2);
+  }
+  m1Freq.dispatchEvent(new Event('input'));
+
+  document.getElementById('playM1').addEventListener('click', ()=> m1.playing ? stopM1() : playM1());
+  function playM1(){
+    ensureAudio(); ctx.resume(); stopAllModules();
+    m1.osc = ctx.createOscillator(); m1.osc.type='sine'; m1.osc.frequency.value = m1.f;
+    m1.gain = ctx.createGain(); m1.gain.gain.value = 0.22;
+    m1.osc.connect(m1.gain); m1.gain.connect(masterGain);
+    m1.osc.start(); m1.playing = true;
+    updatePlayBtn('playM1', true);
+  }
+  function stopM1(){
+    if(m1.osc){ try{m1.osc.stop();}catch(e){} m1.osc.disconnect(); m1.osc=null; }
+    m1.playing=false; updatePlayBtn('playM1', false);
+  }
+
+  function drawM1(dt){
+    if(m1.playing){
+      m1.theta = (m1.theta + 360*(m1.f/SLOW)*dt) % 360;
+      updateM1Readout();
+    }
+    clear(cvWheel);
+    const {ctx:g,w,h} = cvWheel;
+    const R = Math.min(h*0.38, 100);
+    const cx = R + 40, cy = h/2;
+    drawWheelBase(g, cx, cy, R);
+
+    const len = R*0.9;
+    const tip = drawPhasor(g, cx, cy, len, m1.theta, COLOR.teal, 2.5);
+
+    const th = (((m1.theta%360)+360)%360)*Math.PI/180;
+    g.strokeStyle = COLOR.amber; g.lineWidth = 2;
+    g.beginPath(); g.arc(cx, cy, R*0.32, 0, -th, true); g.stroke();
+
+    const x0 = cx + R + 30;
+    const k = (2*Math.PI*2)/(w - x0);
+    g.strokeStyle = COLOR.teal; g.lineWidth = 2.2;
+    g.beginPath();
+    for(let px=x0; px<=w; px++){
+      const val = Math.sin(th - k*(px - x0));
+      const py = cy - val*len;
+      if(px===x0) g.moveTo(px,py); else g.lineTo(px,py);
+    }
+    g.stroke();
+
+    g.strokeStyle = 'rgba(242,239,232,0.35)'; g.lineWidth = 1; g.setLineDash([4,4]);
+    g.beginPath(); g.moveTo(tip.x, tip.y); g.lineTo(x0, tip.y); g.stroke();
+    g.setLineDash([]);
+    g.fillStyle = COLOR.paper;
+    g.beginPath(); g.arc(x0, cy - Math.sin(th)*len, 4, 0, Math.PI*2); g.fill();
+  }
+
+  // ================= MODULE 2: PHASE OFFSET =================
+  const m2 = { delta:0, theta:0, playing:false, oscA:null, oscB:null, delay:null };
+  const cvOffset = reg('cvOffset');
+  const m2Phase = document.getElementById('m2Phase');
+
+  m2Phase.addEventListener('input', e=>{
+    m2.delta = +e.target.value;
+    document.getElementById('m2Val').textContent = m2.delta + '°';
+    const rad = m2.delta*Math.PI/180;
+    const pct = Math.round(200*Math.abs(Math.cos(rad/2)));
+    const desc = pct>150?'constructive':pct<50?'destructive':'partial';
+    document.getElementById('m2Readout').innerHTML =
+      'Combined amplitude: <span class="hi">'+pct+'%</span> of one tone — '+desc;
+    if(m2.delay) setParam(m2.delay.delayTime, (m2.delta/360)/F_REF);
+  });
+  m2Phase.dispatchEvent(new Event('input'));
+
+  document.getElementById('playM2').addEventListener('click', ()=> m2.playing ? stopM2() : playM2());
+  function playM2(){
+    ensureAudio(); ctx.resume(); stopAllModules();
+    m2.oscA = ctx.createOscillator(); m2.oscA.type='sine'; m2.oscA.frequency.value=F_REF;
+    m2.oscB = ctx.createOscillator(); m2.oscB.type='sine'; m2.oscB.frequency.value=F_REF;
+    const gA = ctx.createGain(); gA.gain.value=0.16;
+    const gB = ctx.createGain(); gB.gain.value=0.16;
+    m2.delay = ctx.createDelay(1.0);
+    m2.delay.delayTime.value = (m2.delta/360)/F_REF;
+    m2.oscA.connect(gA); gA.connect(masterGain);
+    m2.oscB.connect(m2.delay); m2.delay.connect(gB); gB.connect(masterGain);
+    m2.oscA.start(); m2.oscB.start();
+    m2.playing = true;
+    updatePlayBtn('playM2', true);
+  }
+  function stopM2(){
+    [m2.oscA,m2.oscB].forEach(o=>{ if(o){ try{o.stop();}catch(e){} o.disconnect(); } });
+    if(m2.delay){ m2.delay.disconnect(); m2.delay=null; }
+    m2.oscA=m2.oscB=null; m2.playing=false;
+    updatePlayBtn('playM2', false);
+  }
+
+  function drawM2(dt){
+    if(m2.playing) m2.theta = (m2.theta + 360*(F_REF/SLOW)*dt) % 360;
+    clear(cvOffset);
+    const {ctx:g,w,h} = cvOffset;
+    const R = Math.min(h*0.38, 100);
+    const cx = R + 40, cy = h/2;
+    drawWheelBase(g, cx, cy, R);
+
+    const len = R*0.5;
+    const aA = m2.theta, aB = m2.theta - m2.delta;
+    const rA = aA*Math.PI/180, rB = aB*Math.PI/180;
+    const sx = Math.cos(rA)+Math.cos(rB), sy = Math.sin(rA)+Math.sin(rB);
+    const sumDeg = Math.atan2(sy, sx)*180/Math.PI;
+    const sumLen = Math.hypot(sx, sy)*len;
+    drawPhasor(g, cx, cy, sumLen, sumDeg, COLOR.paper, 2);
+    drawPhasor(g, cx, cy, len, aA, COLOR.teal, 2.5);
+    drawPhasor(g, cx, cy, len, aB, COLOR.amber, 2.5);
+
+    const x0 = cx + R + 30;
+    const k = (2*Math.PI*2)/(w - x0);
+    const th = m2.theta*Math.PI/180, dRad = m2.delta*Math.PI/180;
+    const wave = (off, color, widthPx)=>{
+      g.strokeStyle = color; g.lineWidth = widthPx;
+      g.beginPath();
+      for(let px=x0; px<=w; px++){
+        const val = Math.sin(th - k*(px-x0) - off);
+        const py = cy - val*len;
+        if(px===x0) g.moveTo(px,py); else g.lineTo(px,py);
+      }
+      g.stroke();
+    };
+    wave(0, 'rgba(44,196,178,0.45)', 1.5);
+    wave(dRad, 'rgba(238,140,18,0.55)', 1.5);
+    g.strokeStyle = COLOR.paper; g.lineWidth = 2.2;
+    g.beginPath();
+    for(let px=x0; px<=w; px++){
+      const t = th - k*(px-x0);
+      const val = Math.sin(t) + Math.sin(t - dRad);
+      const py = cy - val*len;
+      if(px===x0) g.moveTo(px,py); else g.lineTo(px,py);
+    }
+    g.stroke();
+  }
+
+  // ================= MODULE 3: PHASE <-> TIME =================
+  const m3 = { delta:90, f:440, playing:false, oscA:null, oscB:null, delay:null };
+  const cvTime = reg('cvTime');
+  const m3Phase = document.getElementById('m3Phase');
+  const m3Freq = document.getElementById('m3Freq');
+
+  function updateM3(){
+    m3.delta = +m3Phase.value;
+    m3.f = +m3Freq.value;
+    document.getElementById('m3PhaseVal').textContent = m3.delta + '°';
+    document.getElementById('m3FreqVal').textContent = m3.f + ' Hz';
+    const dtSec = (m3.delta/360)/m3.f;
+    document.getElementById('m3Dt').textContent = (dtSec*1000).toFixed(2) + ' ms';
+    document.getElementById('m3Samples').textContent = Math.round(dtSec*48000);
+    if(m3.oscB) setParam(m3.oscB.frequency, m3.f);
+    if(m3.oscA) setParam(m3.oscA.frequency, m3.f);
+    if(m3.delay) setParam(m3.delay.delayTime, dtSec);
+  }
+  m3Phase.addEventListener('input', updateM3);
+  m3Freq.addEventListener('input', updateM3);
+  updateM3();
+
+  document.getElementById('playM3').addEventListener('click', ()=> m3.playing ? stopM3() : playM3());
+  function playM3(){
+    ensureAudio(); ctx.resume(); stopAllModules();
+    m3.oscA = ctx.createOscillator(); m3.oscA.type='sine'; m3.oscA.frequency.value=m3.f;
+    m3.oscB = ctx.createOscillator(); m3.oscB.type='sine'; m3.oscB.frequency.value=m3.f;
+    const gA = ctx.createGain(); gA.gain.value=0.16;
+    const gB = ctx.createGain(); gB.gain.value=0.16;
+    m3.delay = ctx.createDelay(1.0);
+    m3.delay.delayTime.value = (m3.delta/360)/m3.f;
+    m3.oscA.connect(gA); gA.connect(masterGain);
+    m3.oscB.connect(m3.delay); m3.delay.connect(gB); gB.connect(masterGain);
+    m3.oscA.start(); m3.oscB.start();
+    m3.playing = true;
+    updatePlayBtn('playM3', true);
+  }
+  function stopM3(){
+    [m3.oscA,m3.oscB].forEach(o=>{ if(o){ try{o.stop();}catch(e){} o.disconnect(); } });
+    if(m3.delay){ m3.delay.disconnect(); m3.delay=null; }
+    m3.oscA=m3.oscB=null; m3.playing=false;
+    updatePlayBtn('playM3', false);
+  }
+
+  function drawM3(){
+    clear(cvTime);
+    const {ctx:g,w,h} = cvTime;
+    const R = Math.min(h*0.36, 95);
+    const cx = R + 40, cy = h/2;
+    drawWheelBase(g, cx, cy, R);
+    const len = R*0.6;
+    drawPhasor(g, cx, cy, len, 90, COLOR.teal, 2.5);
+    drawPhasor(g, cx, cy, len, 90 - m3.delta, COLOR.amber, 2.5);
+
+    const x0 = cx + R + 30;
+    const winSec = 2/m3.f;
+    const dRad = m3.delta*Math.PI/180;
+    const amp = R*0.5;
+    const wave = (off, color)=>{
+      g.strokeStyle = color; g.lineWidth = 2;
+      g.beginPath();
+      for(let px=x0; px<=w; px++){
+        const t = ((px-x0)/(w-x0))*winSec;
+        const val = Math.sin(2*Math.PI*m3.f*t - off);
+        const py = cy - val*amp;
+        if(px===x0) g.moveTo(px,py); else g.lineTo(px,py);
+      }
+      g.stroke();
+    };
+    wave(0, COLOR.teal);
+    wave(dRad, COLOR.amber);
+
+    const dtSec = (m3.delta/360)/m3.f;
+    const xA = x0;
+    const xB = x0 + (dtSec/winSec)*(w-x0);
+    const yArr = cy - amp - 14;
+    if(m3.delta > 0){
+      g.strokeStyle = COLOR.paper; g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(xA, yArr); g.lineTo(xB, yArr); g.stroke();
+      g.beginPath(); g.moveTo(xA+6, yArr-4); g.lineTo(xA, yArr); g.lineTo(xA+6, yArr+4); g.stroke();
+      g.beginPath(); g.moveTo(xB-6, yArr-4); g.lineTo(xB, yArr); g.lineTo(xB-6, yArr+4); g.stroke();
+      g.fillStyle = COLOR.paper; g.font = `11px ${FONT_MONO}`; g.textAlign='center';
+      g.fillText('Δt = ' + (dtSec*1000).toFixed(2) + ' ms', (xA+xB)/2, yArr - 8);
+    }
+  }
+
+  // ================= MODULE 4: XY SCOPE =================
+  const m4 = { delta:90, theta:0, playing:false, oscA:null, oscB:null, delay:null };
+  const cvXY = reg('cvXY');
+  const m4Phase = document.getElementById('m4Phase');
+
+  m4Phase.addEventListener('input', e=>{
+    m4.delta = +e.target.value;
+    document.getElementById('m4Val').textContent = m4.delta + '°';
+    const d = m4.delta;
+    let shape;
+    if(d<7||d>353) shape='diagonal (+) · in phase';
+    else if(Math.abs(d-180)<7) shape='diagonal (−) · opposed';
+    else if(Math.abs(d-90)<7||Math.abs(d-270)<7) shape='circle';
+    else shape='ellipse';
+    document.getElementById('m4Shape').textContent = shape;
+    document.getElementById('m4Corr').textContent = Math.cos(d*Math.PI/180).toFixed(2);
+    if(m4.delay) setParam(m4.delay.delayTime, (m4.delta/360)/F_REF);
+  });
+  m4Phase.dispatchEvent(new Event('input'));
+
+  document.getElementById('playM4').addEventListener('click', ()=> m4.playing ? stopM4() : playM4());
+  function playM4(){
+    ensureAudio(); ctx.resume(); stopAllModules();
+    m4.oscA = ctx.createOscillator(); m4.oscA.type='sine'; m4.oscA.frequency.value=F_REF;
+    m4.oscB = ctx.createOscillator(); m4.oscB.type='sine'; m4.oscB.frequency.value=F_REF;
+    const gA = ctx.createGain(); gA.gain.value=0.16;
+    const gB = ctx.createGain(); gB.gain.value=0.16;
+    m4.delay = ctx.createDelay(1.0);
+    m4.delay.delayTime.value = (m4.delta/360)/F_REF;
+    m4.oscA.connect(gA); gA.connect(masterGain);
+    m4.oscB.connect(m4.delay); m4.delay.connect(gB); gB.connect(masterGain);
+    m4.oscA.start(); m4.oscB.start();
+    m4.playing = true;
+    updatePlayBtn('playM4', true);
+  }
+  function stopM4(){
+    [m4.oscA,m4.oscB].forEach(o=>{ if(o){ try{o.stop();}catch(e){} o.disconnect(); } });
+    if(m4.delay){ m4.delay.disconnect(); m4.delay=null; }
+    m4.oscA=m4.oscB=null; m4.playing=false;
+    updatePlayBtn('playM4', false);
+  }
+
+  function drawM4(dt){
+    if(m4.playing) m4.theta = (m4.theta + 360*(F_REF/SLOW)*dt) % 360;
+    clear(cvXY);
+    const {ctx:g,w,h} = cvXY;
+    const cx = w/2, cy = h/2;
+    const R = Math.min(w,h)*0.40;
+    g.strokeStyle = COLOR.grid; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(cx-R-14, cy); g.lineTo(cx+R+14, cy); g.stroke();
+    g.beginPath(); g.moveTo(cx, cy-R-14); g.lineTo(cx, cy+R+14); g.stroke();
+    g.strokeStyle = COLOR.rim;
+    g.beginPath(); g.arc(cx, cy, R, 0, Math.PI*2); g.stroke();
+
+    const dRad = m4.delta*Math.PI/180;
+    g.strokeStyle = COLOR.teal; g.lineWidth = 2.2;
+    g.beginPath();
+    for(let i=0;i<=360;i++){
+      const s = i*Math.PI/180;
+      const px = cx + Math.sin(s)*R;
+      const py = cy - Math.sin(s + dRad)*R;
+      if(i===0) g.moveTo(px,py); else g.lineTo(px,py);
+    }
+    g.stroke();
+    const sNow = m4.theta*Math.PI/180;
+    g.fillStyle = COLOR.amber;
+    g.beginPath();
+    g.arc(cx + Math.sin(sNow)*R, cy - Math.sin(sNow + dRad)*R, 5, 0, Math.PI*2);
+    g.fill();
+
+    g.fillStyle = COLOR.paperDim; g.font = `10px ${FONT_MONO}`;
+    g.textAlign='left';  g.fillText('B →', cx + R + 4, cy - 6);
+    g.textAlign='center';g.fillText('A →', cx + 16, cy + R + 14);
+  }
+
+  // ================= MODULE 5: COMB FILTER =================
+  const TAU_MIN = 0.01, TAU_MAX = 20;
+  const m5 = { tau:0.002, f:1000, src:'sine', playing:false, sweeping:false, sweepT:0,
+               osc:null, gD:null, gE:null, delay:null };
+  let pinkBuf = null;
+  const cvComb = reg('cvComb');
+  const m5Tau = document.getElementById('m5Tau');
+  const m5Freq = document.getElementById('m5Freq');
+  const sweepBtn = document.getElementById('sweepM5');
+  const COMB_FMAX = 5000;
+
+  function tauMsFromSlider(v){ return TAU_MIN * Math.pow(TAU_MAX/TAU_MIN, v/1000); }
+  function fmtHz(f){ return f>=1000 ? (f/1000).toFixed(1)+' kHz' : Math.round(f)+' Hz'; }
+
+  function makePinkNoiseBuffer(sec){
+    const sr = ctx.sampleRate;
+    const len = Math.floor(sr*sec);
+    const buf = ctx.createBuffer(1, len, sr);
+    const d = buf.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for(let i=0;i<len;i++){
+      const white = Math.random()*2-1;
+      b0 = 0.99886*b0 + white*0.0555179;
+      b1 = 0.99332*b1 + white*0.0750759;
+      b2 = 0.96900*b2 + white*0.1538520;
+      b3 = 0.86650*b3 + white*0.3104856;
+      b4 = 0.55000*b4 + white*0.5329522;
+      b5 = -0.7616*b5 - white*0.0168980;
+      d[i] = (b0+b1+b2+b3+b4+b5+b6+white*0.5362)*0.11;
+      b6 = white*0.115926;
+    }
+    return buf;
+  }
+
+  function recalcM5(){
+    const tms = m5.tau*1000;
+    document.getElementById('m5TauVal').textContent = (tms<0.1? tms.toFixed(3): tms.toFixed(2)) + ' ms';
+    document.getElementById('m5FreqVal').textContent = Math.round(m5.f) + ' Hz';
+    document.getElementById('m5Null').textContent = fmtHz(1/(2*m5.tau));
+    document.getElementById('m5Spacing').textContent = fmtHz(1/m5.tau);
+    const gain = 2*Math.abs(Math.cos(Math.PI*m5.f*m5.tau));
+    document.getElementById('m5Gain').textContent = Math.round(gain*100) + '%';
+    if(m5.osc && m5.osc.frequency) setParam(m5.osc.frequency, m5.f);
+    if(m5.delay) setParam(m5.delay.delayTime, m5.tau);
+  }
+  m5Tau.addEventListener('input', e=>{
+    m5.tau = tauMsFromSlider(+e.target.value)/1000;
+    recalcM5();
+  });
+  m5Freq.addEventListener('input', e=>{
+    if(m5.sweeping) stopSweep();
+    m5.f = +e.target.value;
+    recalcM5();
+  });
+
+  document.querySelectorAll('#m5SrcBtns .shape-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#m5SrcBtns .shape-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      m5.src = btn.dataset.src;
+      if(m5.sweeping) stopSweep();
+      if(m5.playing){ stopM5(); playM5(); }
+    });
+  });
+
+  recalcM5();
+
+  function stopSweep(){
+    m5.sweeping = false;
+    sweepBtn.textContent = '▶ Sweep';
+    sweepBtn.classList.remove('playing');
+  }
+  sweepBtn.addEventListener('click', ()=>{
+    if(m5.sweeping){ stopSweep(); return; }
+    if(m5.src !== 'sine'){
+      m5.src = 'sine';
+      document.querySelectorAll('#m5SrcBtns .shape-btn').forEach(b=>{
+        b.classList.toggle('active', b.dataset.src==='sine');
+      });
+      if(m5.playing){ stopM5(); playM5(); }
+    }
+    if(!m5.playing) playM5();
+    m5.sweeping = true; m5.sweepT = 0;
+    sweepBtn.textContent = '■ Stop sweep';
+    sweepBtn.classList.add('playing');
+  });
+
+  document.getElementById('playM5').addEventListener('click', ()=> m5.playing ? stopM5() : playM5());
+  function playM5(){
+    ensureAudio(); ctx.resume(); stopAllModules();
+    const level = m5.src==='pink' ? 0.25 : 0.16;
+    m5.gD = ctx.createGain(); m5.gD.gain.value = level;   // direct
+    m5.gE = ctx.createGain(); m5.gE.gain.value = level;   // delayed
+    m5.delay = ctx.createDelay(1.0);
+    m5.delay.delayTime.value = m5.tau;
+
+    if(m5.src === 'pink'){
+      if(!pinkBuf) pinkBuf = makePinkNoiseBuffer(3);
+      m5.osc = ctx.createBufferSource();
+      m5.osc.buffer = pinkBuf;
+      m5.osc.loop = true;
+    } else {
+      m5.osc = ctx.createOscillator();
+      m5.osc.type='sine'; m5.osc.frequency.value = m5.f;
+    }
+    m5.osc.connect(m5.gD); m5.gD.connect(masterGain);
+    m5.osc.connect(m5.delay); m5.delay.connect(m5.gE); m5.gE.connect(masterGain);
+    m5.osc.start(); m5.playing = true;
+    updatePlayBtn('playM5', true);
+  }
+  function stopM5(){
+    stopSweep();
+    if(m5.osc){ try{m5.osc.stop();}catch(e){} m5.osc.disconnect(); m5.osc=null; }
+    if(m5.delay){ m5.delay.disconnect(); m5.delay=null; }
+    m5.gD=m5.gE=null; m5.playing=false;
+    updatePlayBtn('playM5', false);
+  }
+
+  function drawM5(dt){
+    if(m5.sweeping){
+      m5.sweepT += dt;
+      const T=8, f0=100, f1=COMB_FMAX;
+      const p = m5.sweepT/T;
+      if(p>=1){ stopSweep(); }
+      else {
+        m5.f = f0*Math.pow(f1/f0, p);
+        m5Freq.value = m5.f;
+        recalcM5();
+      }
+    }
+
+    clear(cvComb);
+    const {ctx:g,w,h} = cvComb;
+    const padL=44, padR=14, padT=14, padB=26;
+    const iw=w-padL-padR, ih=h-padT-padB;
+    const X = f => padL + (f/COMB_FMAX)*iw;
+    const Y = v => padT + ih - (v/2.2)*ih;
+
+    g.strokeStyle = COLOR.grid; g.lineWidth = 1;
+    g.fillStyle = COLOR.paperDim; g.font = `10px ${FONT_MONO}`;
+    [0,1,2].forEach(v=>{
+      g.beginPath(); g.moveTo(padL, Y(v)); g.lineTo(w-padR, Y(v)); g.stroke();
+      g.textAlign='right'; g.fillText('×'+v, padL-6, Y(v)+3);
+    });
+    g.textAlign='center';
+    for(let f=0; f<=COMB_FMAX; f+=1000){
+      g.beginPath(); g.moveTo(X(f), padT); g.lineTo(X(f), padT+ih); g.stroke();
+      g.fillText(f===0?'0':(f/1000)+'k', X(f), h-8);
+    }
+    g.textAlign='right'; g.fillText('Hz', w-padR, h-8);
+
+    g.strokeStyle = 'rgba(238,140,18,0.35)'; g.lineWidth = 1; g.setLineDash([3,4]);
+    for(let n=0;;n++){
+      const fn = (n+0.5)/m5.tau;
+      if(fn > COMB_FMAX) break;
+      g.beginPath(); g.moveTo(X(fn), padT); g.lineTo(X(fn), padT+ih); g.stroke();
+    }
+    g.setLineDash([]);
+
+    const teeth = Math.ceil(m5.tau*COMB_FMAX);
+    const N = Math.min(4000, Math.max(900, teeth*40));
+    g.strokeStyle = COLOR.teal; g.lineWidth = 2.2;
+    g.beginPath();
+    for(let i=0;i<=N;i++){
+      const f = COMB_FMAX*i/N;
+      const v = 2*Math.abs(Math.cos(Math.PI*f*m5.tau));
+      const px = X(f), py = Y(v);
+      if(i===0) g.moveTo(px,py); else g.lineTo(px,py);
+    }
+    g.stroke();
+
+    const gv = 2*Math.abs(Math.cos(Math.PI*m5.f*m5.tau));
+    g.strokeStyle = 'rgba(242,239,232,0.25)'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(X(m5.f), padT); g.lineTo(X(m5.f), padT+ih); g.stroke();
+    g.fillStyle = COLOR.amber;
+    g.beginPath(); g.arc(X(m5.f), Y(gv), 5, 0, Math.PI*2); g.fill();
+  }
+
+  // ---------------- tabs ----------------
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  tabButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      stopAllModules();
+      tabButtons.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+      activeTab = btn.dataset.tab;
+      setTimeout(()=>canvases.forEach(resizeOne), 50);
+    });
+  });
+
+  // ---------------- animation loop ----------------
+  let lastTime = 0;
+  function animate(currentTime){
+    let dt = (currentTime - lastTime)/1000;
+    lastTime = currentTime;
+    if(!(dt>0) || dt>0.05) dt = 0.016;
+
+    if(activeTab==='wheel') drawM1(dt);
+    else if(activeTab==='offset') drawM2(dt);
+    else if(activeTab==='time') drawM3();
+    else if(activeTab==='xy') drawM4(dt);
+    else if(activeTab==='comb') drawM5(dt);
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>
