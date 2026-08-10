@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Audio Fundamentals — Interactive Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f6f2; --card:#ffffff; --ink:#182236; --ink-soft:#51617f;
+  --line:#d9dee7; --blue:#2b5fd9; --teal:#0c8f85; --orange:#e85d26;
+  --magenta:#d0388e; --amber:#e39a2d; --green:#1c9e57; --red:#d92f45;
+  --shadow:6px 6px 0 rgba(24,34,54,.07);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:"IBM Plex Sans",sans-serif;color:var(--ink);background:var(--paper);
+  background-image:
+    radial-gradient(900px 420px at 78% -8%, rgba(43,95,217,.09), transparent 62%),
+    radial-gradient(700px 380px at 6% 12%, rgba(12,143,133,.07), transparent 60%),
+    linear-gradient(rgba(43,95,217,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(43,95,217,.05) 1px, transparent 1px),
+    linear-gradient(rgba(43,95,217,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(43,95,217,.08) 1px, transparent 1px);
+  background-size:auto,auto,22px 22px,22px 22px,110px 110px,110px 110px;
+  min-height:100vh;
+}
+::selection{background:#ffe14d;color:var(--ink)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+/* ---------- masthead ---------- */
+.masthead{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;flex-wrap:wrap;padding-top:44px}
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;color:var(--blue);font-weight:600;display:flex;align-items:center;gap:8px}
+.kicker::before{content:"";width:10px;height:10px;background:var(--blue);display:inline-block}
+h1{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:clamp(2.3rem,5.2vw,3.8rem);line-height:1.02;letter-spacing:-.01em;margin:10px 0 12px}
+@supports (-webkit-text-stroke:1px black){
+  h1 em{font-style:normal;color:transparent;-webkit-text-stroke:1.7px var(--ink)}
+}
+.sub{max-width:56ch;color:var(--ink-soft);font-size:15px;line-height:1.55}
+.sub b{color:var(--ink)}
+.scopechip{border:1.5px solid var(--ink);background:var(--card);box-shadow:var(--shadow);border-radius:8px;padding:10px 12px 8px;min-width:300px}
+.scopechip .bar{display:flex;align-items:center;gap:8px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:6px}
+.rec{width:9px;height:9px;border-radius:50%;background:var(--red);animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+#cvMini{width:280px;height:84px;display:block}
+
+/* ---------- tabs ---------- */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:30px 0 20px}
+.tab{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:14.5px;text-align:left;
+  display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;
+  background:var(--card);border:1.5px solid var(--ink);border-radius:8px;color:var(--ink);
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
+}
+.tab .idx{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;border:1.5px solid currentColor;border-radius:4px;padding:2px 5px;transition:inherit}
+.tab:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 rgba(24,34,54,.16)}
+.tab.on{background:var(--ink);color:#f7f8f4}
+.tab.on .idx{background:#f7f8f4;color:var(--ink);border-color:#f7f8f4}
+
+/* ---------- layout ---------- */
+.panel[hidden]{display:none}
+.lab{display:grid;grid-template-columns:322px 1fr;gap:18px;align-items:start}
+.card{background:var(--card);border:1.5px solid var(--ink);border-radius:9px;box-shadow:var(--shadow)}
+.panel.enter .controls{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.panel.enter .stage{animation:rise .5s .07s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ---------- controls ---------- */
+.controls{padding:18px 16px;display:flex;flex-direction:column;gap:15px}
+.ctl{display:flex;flex-direction:column;gap:6px}
+.ctl .row{display:flex;justify-content:space-between;align-items:baseline}
+.ctl label{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;color:var(--ink-soft);font-weight:600}
+.ctl output{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;background:#eef2f9;border:1px solid #d3dcea;border-radius:5px;padding:2px 7px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--ink);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;margin-top:-6.5px;background:#fff;border:2px solid var(--ink);border-radius:5px;transition:background .15s,transform .15s}
+input[type=range]:hover::-webkit-slider-thumb{background:#ffe9a8;transform:scale(1.12)}
+input[type=range]::-moz-range-track{height:4px;background:var(--ink);border-radius:2px}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;background:#fff;border:2px solid var(--ink);border-radius:5px}
+input[type=range]:hover::-moz-range-thumb{background:#ffe9a8}
+.reads{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.read{background:#f2f5fa;border:1px solid #d5ddea;border-radius:6px;padding:8px 10px}
+.read b{font-family:"IBM Plex Mono",monospace;font-size:14px;display:block}
+.read span{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;color:var(--ink-soft);text-transform:uppercase}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;font-weight:600;
+  padding:9px 13px;border:1.5px solid var(--ink);border-radius:6px;background:#fff;color:var(--ink);
+  cursor:pointer;transition:transform .15s, box-shadow .15s, background .15s, color .15s;
+}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(24,34,54,.22)}
+.btn:active{transform:translate(1px,1px);box-shadow:none}
+.btn.playing{background:var(--blue);color:#fff}
+.btn.playing::after{content:" ▮";animation:blink .8s steps(2) infinite}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;padding:6px 9px;border:1.5px solid var(--ink);border-radius:6px;background:#fff;cursor:pointer;transition:all .15s}
+.seg button:hover{transform:translateY(-1px)}
+.seg button.on{background:var(--ink);color:#fff}
+.seg button:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.switchrow{display:flex;align-items:center;justify-content:space-between}
+.switch{position:relative;width:46px;height:24px;flex:none}
+.switch input{opacity:0;width:100%;height:100%;position:absolute;cursor:pointer;z-index:2}
+.knob{position:absolute;inset:0;background:#fff;border:1.5px solid var(--ink);border-radius:999px;transition:background .2s}
+.knob::after{content:"";position:absolute;top:2.5px;left:3px;width:15px;height:15px;background:#fff;border:1.5px solid var(--ink);border-radius:50%;transition:left .2s}
+.switch input:checked + .knob{background:var(--teal)}
+.switch input:checked + .knob::after{left:23px;background:#fff}
+.note{background:#fff8e9;border:1px solid #efd28c;border-left:4px solid var(--amber);border-radius:6px;padding:10px 12px;font-size:12.5px;line-height:1.5;color:#5c4a1e;min-height:64px}
+.note b{color:#3d3012}
+
+/* ---------- stage ---------- */
+.stage{padding:14px 16px 12px}
+.stage-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.stage-head h2{font-family:"Space Grotesk",sans-serif;font-size:15px;letter-spacing:.05em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.stage-head h2::before{content:"";width:9px;height:9px;background:var(--orange)}
+.pill{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.06em;padding:4px 11px;border-radius:999px;border:1.5px solid}
+.pill.ok{color:var(--green);border-color:var(--green);background:rgba(28,158,87,.08)}
+.pill.warn{color:var(--orange);border-color:var(--orange);background:rgba(232,93,38,.09)}
+.pill.bad{color:var(--red);border-color:var(--red);background:rgba(217,47,69,.09)}
+.pill.info{color:var(--blue);border-color:var(--blue);background:rgba(43,95,217,.08)}
+.scope{width:100%;display:block}
+#cvSamp{height:400px}#cvQuant{height:400px}#cvDith{height:432px}#cvBuf{height:392px}
+.stage-foot{display:flex;gap:16px;flex-wrap:wrap;margin-top:9px;border-top:1px dashed var(--line);padding-top:8px}
+.lg{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+.sw{width:16px;height:0;border-top:3px solid var(--blue)}
+.sw.t{border-color:var(--teal)}.sw.o{border-color:var(--orange)}.sw.m{border-color:var(--magenta)}
+.sw.dash{border-top-style:dashed}.sw.dot{width:8px;height:8px;border-radius:50%;border-top:none;background:var(--teal)}
+.sw.thin{border-top-width:2px;opacity:.7}
+
+/* ---------- cheatsheet / footer ---------- */
+.cheat{margin:44px 0 20px}
+.cheat h3{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;color:var(--ink-soft);margin-bottom:14px}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.chip{padding:14px;border-radius:8px}
+.chip b{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;color:var(--blue);display:block;margin-bottom:7px}
+.chip code{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;display:block;margin-bottom:6px}
+.chip p{font-size:12px;color:var(--ink-soft);line-height:1.45}
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease, transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+footer{border-top:1.5px solid var(--ink);margin-top:8px;padding:16px 0 40px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-soft);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+
+@media(max-width:940px){
+  .lab{grid-template-columns:1fr}
+  .stage{order:-1}
+  .tabs{grid-template-columns:1fr 1fr}
+  .chips{grid-template-columns:1fr 1fr}
+}
+@media(max-width:540px){
+  .tabs{grid-template-columns:1fr}
+  .chips{grid-template-columns:1fr}
+  #cvSamp,#cvQuant{height:340px}#cvDith{height:400px}#cvBuf{height:360px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ MASTHEAD ============ -->
+  <header class="masthead">
+    <div>
+      <div class="kicker">SIGNAL LAB · PCM-101 · INTERACTIVE</div>
+      <h1>Digital Audio <em>Fundamentals</em></h1>
+      <p class="sub">Four hands-on benches for the ideas every recording lives on: <b>sampling &amp; aliasing</b>, <b>bit depth</b>, <b>dither</b>, and <b>buffer latency</b>. Drag the controls, watch the scopes — and press play to <b>hear</b> each effect.</p>
+    </div>
+    <div class="scopechip">
+      <div class="bar"><span class="rec"></span> LIVE MONITOR — SINE → SAMPLES</div>
+      <canvas id="cvMini"></canvas>
+    </div>
+  </header>
+
+  <!-- ============ TABS ============ -->
+  <nav class="tabs" role="tablist" aria-label="Simulator modules">
+    <button class="tab on" role="tab" aria-selected="true" data-i="0"><span class="idx">01</span>Sampling &amp; Aliasing</button>
+    <button class="tab" role="tab" aria-selected="false" data-i="1"><span class="idx">02</span>Bit Depth &amp; Quantization</button>
+    <button class="tab" role="tab" aria-selected="false" data-i="2"><span class="idx">03</span>Dither</button>
+    <button class="tab" role="tab" aria-selected="false" data-i="3"><span class="idx">04</span>Buffer Size &amp; Latency</button>
+  </nav>
+
+  <main>
+  <!-- ============ TAB 1 : SAMPLING ============ -->
+  <section class="panel" role="tabpanel">
+    <div class="lab">
+      <aside class="controls card">
+        <div class="ctl">
+          <div class="row"><label for="slFin">INPUT FREQUENCY · f</label><output id="vFin"></output></div>
+          <input type="range" id="slFin" min="0" max="100" step="0.1" value="54">
+        </div>
+        <div class="ctl">
+          <div class="row"><label for="slFs">SAMPLE RATE · fs</label><output id="vFs"></output></div>
+          <input type="range" id="slFs" min="0" max="100" step="0.1" value="45">
+        </div>
+        <div class="reads">
+          <div class="read"><b id="rNyq">—</b><span>Nyquist fs/2</span></div>
+          <div class="read"><b id="rAl" style="color:var(--orange)">—</b><span>Alias folds to</span></div>
+          <div class="read"><b id="rPct">—</b><span>f vs. Nyquist</span></div>
+          <div class="read"><b id="rN">—</b><span>samples / window</span></div>
+        </div>
+        <div class="btns">
+          <button class="btn" id="bTone">▶ INPUT TONE</button>
+          <button class="btn" id="bSamp">▶ AS SAMPLED</button>
+        </div>
+        <div class="note" id="note1"></div>
+      </aside>
+      <div class="stage card">
+        <div class="stage-head"><h2>Time Window · 8 ms</h2><span class="pill ok" id="pill1">SAFE</span></div>
+        <canvas id="cvSamp" class="scope"></canvas>
+        <div class="stage-foot">
+          <span class="lg"><i class="sw"></i>analog input</span>
+          <span class="lg"><i class="sw dot"></i>samples</span>
+          <span class="lg"><i class="sw t"></i>zero-order hold</span>
+          <span class="lg"><i class="sw o dash"></i>perceived alias</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2 : BIT DEPTH ============ -->
+  <section class="panel" role="tabpanel" hidden>
+    <div class="lab">
+      <aside class="controls card">
+        <div class="ctl">
+          <div class="row"><label for="slBits">BIT DEPTH · b</label><output id="vBits">8 bit</output></div>
+          <input type="range" id="slBits" min="1" max="16" step="1" value="8">
+        </div>
+        <div class="ctl">
+          <div class="row"><label for="slLvl">SIGNAL LEVEL</label><output id="vLvl2">0.0 dBFS</output></div>
+          <input type="range" id="slLvl" min="0" max="100" step="0.1" value="100">
+        </div>
+        <div class="reads">
+          <div class="read"><b id="rDelta">—</b><span>Step size Δ (FS)</span></div>
+          <div class="read"><b id="rLsbDb">—</b><span>1 LSB in dB</span></div>
+          <div class="read"><b id="rSnr">—</b><span>SNR 6.02b+1.76</span></div>
+          <div class="read"><b id="rSteps">—</b><span>Quantization levels</span></div>
+        </div>
+        <div class="btns">
+          <button class="btn" id="bClean">▶ CLEAN SINE</button>
+          <button class="btn" id="bQuant">▶ QUANTIZED</button>
+        </div>
+        <div class="note" id="note2"></div>
+      </aside>
+      <div class="stage card">
+        <div class="stage-head"><h2>Quantizer Transfer Curve</h2><span class="pill info" id="pill2">MID-TREAD · ±1 FS</span></div>
+        <canvas id="cvQuant" class="scope"></canvas>
+        <div class="stage-foot">
+          <span class="lg"><i class="sw thin"></i>input</span>
+          <span class="lg"><i class="sw t"></i>quantized output</span>
+          <span class="lg"><i class="sw m"></i>error (q − x)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3 : DITHER ============ -->
+  <section class="panel" role="tabpanel" hidden>
+    <div class="lab">
+      <aside class="controls card">
+        <div class="ctl">
+          <div class="row"><label for="slDBits">BIT DEPTH · b</label><output id="vDBits">4 bit</output></div>
+          <input type="range" id="slDBits" min="2" max="8" step="1" value="4">
+        </div>
+        <div class="ctl">
+          <div class="row"><label for="slDLvl">SIGNAL LEVEL (quiet!)</label><output id="vDLvl">—</output></div>
+          <input type="range" id="slDLvl" min="0" max="100" step="0.1" value="60">
+        </div>
+        <div class="switchrow">
+          <label for="tgDither" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--ink-soft);font-weight:600">DITHER</label>
+          <span class="switch"><input type="checkbox" id="tgDither" checked><span class="knob"></span></span>
+        </div>
+        <div class="seg" id="segType">
+          <button data-t="rpdf">RPDF · 1 LSB</button>
+          <button data-t="tpdf" class="on">TPDF · 2 LSB</button>
+        </div>
+        <div class="reads">
+          <div class="read"><b id="rLsb2">—</b><span>1 LSB (FS)</span></div>
+          <div class="read"><b id="rFloor">—</b><span>Noise floor</span></div>
+          <div class="read" style="grid-column:1/-1"><b id="rMode" style="font-size:12px">—</b><span>error character</span></div>
+        </div>
+        <div class="btns">
+          <button class="btn" id="bNoD">▶ NO DITHER</button>
+          <button class="btn" id="bD">▶ DITHERED</button>
+        </div>
+        <div class="note" id="note3"></div>
+      </aside>
+      <div class="stage card">
+        <div class="stage-head"><h2>Quiet Tone vs. 1 LSB</h2><span class="pill info" id="pill3">DITHER ON</span></div>
+        <canvas id="cvDith" class="scope"></canvas>
+        <div class="stage-foot">
+          <span class="lg"><i class="sw thin"></i>original</span>
+          <span class="lg"><i class="sw" style="border-color:var(--ink)"></i>quantized output</span>
+          <span class="lg" id="capDither">—</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 4 : BUFFER & LATENCY ============ -->
+  <section class="panel" role="tabpanel" hidden>
+    <div class="lab">
+      <aside class="controls card">
+        <div class="ctl">
+          <div class="row"><label>BUFFER SIZE · N</label></div>
+          <div class="seg" id="segBuf">
+            <button data-v="32">32</button><button data-v="64">64</button><button data-v="128">128</button>
+            <button data-v="256" class="on">256</button><button data-v="512">512</button>
+            <button data-v="1024">1024</button><button data-v="2048">2048</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><label>SAMPLE RATE</label></div>
+          <div class="seg" id="segRate">
+            <button data-v="44100">44.1k</button><button data-v="48000" class="on">48k</button><button data-v="96000">96k</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><label for="slLoad">SIMULATED DSP LOAD</label><output id="vLoad">25%</output></div>
+          <input type="range" id="slLoad" min="0" max="100" step="1" value="25">
+        </div>
+        <div class="reads">
+          <div class="read" style="grid-column:1/-1"><b id="rtBig" style="font-size:26px;color:var(--orange)">—</b><span>Round-trip latency · 2N/fs + driver</span></div>
+          <div class="read"><b id="rOne">—</b><span>One buffer</span></div>
+          <div class="read"><b id="rDist">—</b><span>Sound travels</span></div>
+        </div>
+        <div class="btns"><button class="btn" id="bClick">▶ CLICK TEST (ECHO AT LATENCY)</button></div>
+        <div class="note" id="note4"></div>
+      </aside>
+      <div class="stage card">
+        <div class="stage-head"><h2>Signal Path · Note → Sound</h2><span class="pill ok" id="pill4">STABLE</span></div>
+        <canvas id="cvBuf" class="scope"></canvas>
+        <div class="stage-foot">
+          <span class="lg"><i class="sw dot" style="background:var(--orange)"></i>audio pulse</span>
+          <span class="lg">ruler zones: <b style="color:var(--green)">&lt;6 ms</b> tracking · <b style="color:var(--amber)">6–15</b> mixing · <b style="color:var(--red)">&gt;15</b> sluggish</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <!-- ============ CHEATSHEET ============ -->
+  <section class="cheat">
+    <h3>// FIELD NOTES — THE FOUR FORMULAS</h3>
+    <div class="chips">
+      <div class="card chip reveal"><b>01 · NYQUIST</b><code>f<sub>nyq</sub> = fs / 2</code><p>Tones above Nyquist don't disappear — they mirror back as aliases: f<sub>a</sub> = |fs·round(f/fs) − f|.</p></div>
+      <div class="card chip reveal"><b>02 · BIT DEPTH</b><code>SNR ≈ 6.02·b + 1.76 dB</code><p>Every extra bit buys ~6 dB of headroom and halves the step size Δ = 2/2<sup>b</sup>.</p></div>
+      <div class="card chip reveal"><b>03 · DITHER</b><code>noise ↑ · distortion ↓</code><p>~1–2 LSB of random noise turns correlated, harmonic quantization error into a benign, steady floor.</p></div>
+      <div class="card chip reveal"><b>04 · LATENCY</b><code>t ≈ 2N / fs + driver</code><p>Round-trip = in-buffer + out-buffer. Halve N for feel, double it for CPU safety — never both.</p></div>
+    </div>
+  </section>
+  <footer>
+    <span>PCM-101 · ALL AUDIO SYNTHESIZED LIVE VIA WEB AUDIO API</span>
+    <span>fs ∈ {44.1k, 48k, 96k} · b ∈ {1…24} · no plugins were harmed</span>
+  </footer>
+</div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const INK="#182236", SOFT="#51617f", BLUE="#2b5fd9", TEAL="#0c8f85", ORANGE="#e85d26",
+      MAG="#d0388e", GREEN="#1c9e57", RED="#d92f45", AMBER="#e39a2d";
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmtHz=f=>f>=1000?(f/1000>=10?(f/1000).toFixed(1):(f/1000).toFixed(2))+" kHz":Math.round(f)+" Hz";
+const dBFS=x=>(20*Math.log10(Math.max(x,1e-6))).toFixed(1)+" dBFS";
+
+/* ---------------- state ---------------- */
+const S={
+  samp:{fin:1800,fs:8000},
+  quant:{bits:8,level:1},
+  dith:{bits:4,level:0.032,on:true,type:"tpdf"},
+  buf:{size:256,rate:48000,load:25}
+};
+
+/* ---------------- canvas utils ---------------- */
+function sizeCanvas(cv){
+  const dpr=window.devicePixelRatio||1, r=cv.getBoundingClientRect();
+  if(!r.width||!r.height)return;
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+  cv.getContext("2d").setTransform(dpr,0,0,dpr,0,0);
+  cv._w=r.width; cv._h=r.height;
+}
+function gridBG(c,w,h,step=22){
+  c.fillStyle="#fff"; c.fillRect(0,0,w,h);
+  c.lineWidth=1;
+  c.strokeStyle="rgba(24,34,54,.05)"; c.beginPath();
+  for(let x=0;x<=w;x+=step){c.moveTo(x+.5,0);c.lineTo(x+.5,h);}
+  for(let y=0;y<=h;y+=step){c.moveTo(0,y+.5);c.lineTo(w,y+.5);}
+  c.stroke();
+  c.strokeStyle="rgba(24,34,54,.1)"; c.beginPath();
+  for(let x=0;x<=w;x+=step*5){c.moveTo(x+.5,0);c.lineTo(x+.5,h);}
+  for(let y=0;y<=h;y+=step*5){c.moveTo(0,y+.5);c.lineTo(w,y+.5);}
+  c.stroke();
+}
+function label(c,x,y,txt,color=SOFT,size=10,align="left"){
+  c.font=size+'px "IBM Plex Mono",monospace'; c.fillStyle=color; c.textAlign=align; c.textBaseline="alphabetic"; c.fillText(txt,x,y); c.textAlign="left";
+}
+
+/* ---------------- TAB 1 : SAMPLING ---------------- */
+const T_WIN=0.008;
+const foldFreq=(f,fs)=>{let m=f%fs; if(m>fs/2)m=fs-m; return m;};
+function drawSampling(ts){
+  const cv=$("#cvSamp"),c=cv.getContext("2d"),w=cv._w,h=cv._h; if(!w)return;
+  const {fin,fs}=S.samp, phase=ts*0.0042;
+  gridBG(c,w,h);
+  const mL=46,mR=16,mT=16, stripH=88, gap=14;
+  const wy=mT, wh=h-mT-stripH-gap, midY=wy+wh/2, amp=wh/2*0.82;
+  const X=t=>mL+(t/T_WIN)*(w-mL-mR), Y=v=>midY-v*amp;
+  const sig=t=>Math.sin(2*Math.PI*fin*t+phase);
+  // axis
+  c.strokeStyle="rgba(24,34,54,.35)"; c.setLineDash([3,4]); c.beginPath();
+  c.moveTo(mL,midY); c.lineTo(w-mR,midY); c.stroke(); c.setLineDash([]);
+  label(c,mL-8,midY+3,"0",SOFT,9,"right");
+  label(c,mL-8,mT+8,"+1",SOFT,9,"right"); label(c,mL-8,wy+wh-2,"−1",SOFT,9,"right");
+  // analog
+  c.strokeStyle=BLUE; c.lineWidth=2; c.beginPath();
+  for(let i=0;i<=600;i++){const t=i/600*T_WIN; i?c.lineTo(X(t),Y(sig(t))):c.moveTo(X(t),Y(sig(t)));}
+  c.stroke();
+  // samples + hold
+  const nMax=Math.ceil(T_WIN*fs);
+  c.strokeStyle=TEAL; c.lineWidth=1.8; c.beginPath();
+  let first=true;
+  for(let n=0;n<=nMax;n++){
+    const t0=n/fs; if(t0>T_WIN)break;
+    const v=sig(t0), x0=X(t0), x1=X(Math.min(t0+1/fs,T_WIN));
+    first?(c.moveTo(x0,Y(v)),first=false):c.lineTo(x0,Y(v));
+    c.lineTo(x1,Y(v));
+  }
+  c.stroke();
+  for(let n=0;n<=nMax;n++){
+    const t0=n/fs; if(t0>T_WIN)break;
+    c.beginPath(); c.arc(X(t0),Y(sig(t0)),nMax>80?2.2:3.4,0,7);
+    c.fillStyle=TEAL; c.fill(); c.strokeStyle="#fff"; c.lineWidth=1; c.stroke();
+  }
+  // 1/fs bracket when sparse
+  if(nMax<40){
+    const x0=X(0),x1=X(1/fs),yb=wy+wh+2;
+    c.strokeStyle=SOFT;c.lineWidth=1;c.beginPath();
+    c.moveTo(x0,yb-4);c.lineTo(x0,yb);c.lineTo(x1,yb);c.lineTo(x1,yb-4);c.stroke();
+    label(c,(x0+x1)/2,yb+11,"1/fs",SOFT,9,"center");
+  }
+  // alias overlay
+  const aliasing=fin>fs/2, fm=fin%fs, fa=foldFreq(fin,fs);
+  if(aliasing){
+    c.strokeStyle=ORANGE; c.lineWidth=2; c.setLineDash([7,5]); c.beginPath();
+    for(let i=0;i<=600;i++){const t=i/600*T_WIN; const v=Math.sin(2*Math.PI*fm*t+phase);
+      i?c.lineTo(X(t),Y(v)):c.moveTo(X(t),Y(v));}
+    c.stroke(); c.setLineDash([]);
+  }
+  // ---- frequency strip ----
+  const yT=h-stripH+2, yA=yT+56, xF=f=>mL+(f/fs)*(w-mL-mR);
+  c.fillStyle="rgba(43,95,217,.07)"; c.fillRect(mL,yT+10,(w-mL-mR)/2,58);
+  c.strokeStyle="rgba(24,34,54,.4)"; c.lineWidth=1.2; c.beginPath();
+  c.moveTo(mL,yA); c.lineTo(w-mR,yA); c.stroke();
+  c.strokeStyle=BLUE; c.setLineDash([4,4]); c.beginPath();
+  c.moveTo(xF(fs/2),yT+8); c.lineTo(xF(fs/2),yA); c.stroke(); c.setLineDash([]);
+  label(c,mL,yA+14,"0",SOFT,9); label(c,xF(fs/2),yT+6,"Nyquist fs/2",BLUE,9,"center");
+  label(c,w-mR,yA+14,"fs",SOFT,9,"right");
+  label(c,(mL+xF(fs/2))/2,yA+14,"baseband","rgba(43,95,217,.65)",9,"center");
+  const tri=(x,col,hollow)=>{c.beginPath();c.moveTo(x,yA-2);c.lineTo(x-5,yA-11);c.lineTo(x+5,yA-11);c.closePath();
+    if(hollow){c.strokeStyle=col;c.lineWidth=1.5;c.stroke();}else{c.fillStyle=col;c.fill();}};
+  if(fin<fs){tri(xF(fin),BLUE,false); label(c,xF(fin),yA-15,"f",BLUE,9,"center");}
+  else{tri(xF(fm),BLUE,true); label(c,xF(fm),yA-15,"f mod fs",BLUE,9,"center");}
+  if(aliasing){
+    tri(xF(fa),ORANGE,false); label(c,xF(fa),yA+22,"alias "+fmtHz(fa),ORANGE,9,"center");
+    if(fm>fs/2){ // fold arrow
+      c.strokeStyle=ORANGE; c.lineWidth=1.4; c.beginPath();
+      c.moveTo(xF(fm),yA-13); c.quadraticCurveTo((xF(fm)+xF(fa))/2,yA-34,xF(fa)+4,yA-13); c.stroke();
+      c.beginPath();c.moveTo(xF(fa)+4,yA-13);c.lineTo(xF(fa),yA-20);c.lineTo(xF(fa)+9,yA-18);c.closePath();
+      c.fillStyle=ORANGE;c.fill();
+    }
+  }
+  label(c,w-mR,yT+8,"FREQUENCY MAP",SOFT,9,"right");
+}
+function updSamp(){
+  const {fin,fs}=S.samp, nyq=fs/2, fa=foldFreq(fin,fs), aliasing=fin>nyq;
+  $("#vFin").textContent=fmtHz(fin); $("#vFs").textContent=fmtHz(fs);
+  $("#rNyq").textContent=fmtHz(nyq);
+  $("#rAl").textContent=aliasing?fmtHz(fa):"—";
+  $("#rPct").textContent=Math.round(fin/nyq*100)+"%";
+  $("#rN").textContent=Math.round(T_WIN*fs);
+  const pill=$("#pill1");
+  pill.className="pill "+(aliasing?"warn":"ok");
+  pill.textContent=aliasing?`ALIASING → ${fmtHz(fa)}`:"BELOW NYQUIST ✓";
+  $("#note1").innerHTML=aliasing
+    ? `<b>Fold-back.</b> A ${fmtHz(fin)} tone sampled at ${fmtHz(fs)} is mathematically indistinguishable from ${fmtHz(fa)}. No software can undo this — an analog <b>anti-alias low-pass</b> must filter f before the ADC.`
+    : `f sits at <b>${Math.round(fin/nyq*100)}%</b> of Nyquist — the samples pin the waveform down faithfully. Push f above ${fmtHz(nyq)} (or drop fs) and watch the orange ghost fold back.`;
+}
+const logMap=(v,min,max)=>min*Math.pow(max/min,v/100);
+$("#slFin").addEventListener("input",e=>{S.samp.fin=logMap(+e.target.value,100,20000);updSamp();});
+$("#slFs").addEventListener("input",e=>{S.samp.fs=logMap(+e.target.value,2000,44100);updSamp();});
+
+/* ---------------- TAB 2 : QUANTIZATION ---------------- */
+const quant=(x,step)=>clamp(Math.round(x/step)*step,-1+step/2,1-step/2);
+function drawQuant(ts){
+  const cv=$("#cvQuant"),c=cv.getContext("2d"),w=cv._w,h=cv._h; if(!w)return;
+  const {bits,level}=S.quant, step=2/Math.pow(2,bits), phase=ts*0.0042;
+  gridBG(c,w,h);
+  const mL=46,mR=16;
+  const wy=14, wh=(h-64)*0.62, midY=wy+wh/2, amp=wh/2*0.82;
+  const ey=wy+wh+42, eh=h-ey-14, emid=ey+eh/2, eScale=eh/2*0.9/Math.max(step*0.65,1e-4);
+  const X=i=>mL+i*(w-mL-mR);
+  const sig=t=>level*Math.sin(2*Math.PI*440*t+phase);
+  // wave area axes
+  c.strokeStyle="rgba(24,34,54,.3)";c.setLineDash([3,4]);c.beginPath();
+  c.moveTo(mL,midY);c.lineTo(w-mR,midY);c.stroke();c.setLineDash([]);
+  label(c,mL-6,midY+3,"0",SOFT,9,"right");
+  // input + staircase
+  c.strokeStyle="rgba(43,95,217,.65)"; c.lineWidth=1.5; c.beginPath();
+  for(let i=0;i<=700;i++){const t=i/700*0.02,v=sig(t);i?c.lineTo(X(i/700),midY-v*amp):c.moveTo(X(i/700),midY-v*amp);}
+  c.stroke();
+  c.strokeStyle=TEAL; c.lineWidth=2; c.beginPath();
+  let prev=null;
+  for(let i=0;i<=700;i++){
+    const t=i/700*0.02, q=quant(sig(t),step), y=midY-q*amp;
+    if(prev===null)c.moveTo(X(0),y);
+    else{c.lineTo(X(i/700),prev);c.lineTo(X(i/700),y);}
+    prev=y;
+  }
+  c.lineTo(X(1),prev); c.stroke();
+  label(c,mL,wy+2,"INPUT vs. STAIRCASE",SOFT,9);
+  // error area
+  c.strokeStyle="rgba(24,34,54,.3)";c.setLineDash([3,4]);c.beginPath();
+  c.moveTo(mL,emid);c.lineTo(w-mR,emid);c.stroke();c.setLineDash([]);
+  c.strokeStyle="rgba(208,56,142,.35)";c.setLineDash([2,4]);c.beginPath();
+  for(const s of [step/2,-step/2]){const y=emid-s*eScale;c.moveTo(mL,y);c.lineTo(w-mR,y);}
+  c.stroke();c.setLineDash([]);
+  label(c,w-mR,emid-step/2*eScale-3,"+Δ/2",MAG,8,"right");
+  label(c,w-mR,emid+step/2*eScale+10,"−Δ/2",MAG,8,"right");
+  c.strokeStyle=MAG; c.lineWidth=1.6; c.beginPath();
+  for(let i=0;i<=700;i++){
+    const t=i/700*0.02, x_=sig(t), e=quant(x_,step)-x_;
+    i?c.lineTo(X(i/700),emid-e*eScale):c.moveTo(X(i/700),emid-e*eScale);
+  }
+  c.stroke();
+  label(c,mL,ey-8,"QUANTIZATION ERROR (q − x), SCALED TO ±Δ",SOFT,9);
+}
+function updQuant(){
+  const {bits,level}=S.quant, step=2/Math.pow(2,bits);
+  $("#vBits").textContent=bits+" bit"; $("#vLvl2").textContent=dBFS(level);
+  $("#rDelta").textContent=step<0.001?step.toExponential(2):step.toFixed(4);
+  $("#rLsbDb").textContent=(20*Math.log10(step)).toFixed(1)+" dB";
+  $("#rSnr").textContent=(6.02*bits+1.76).toFixed(1)+" dB";
+  $("#rSteps").textContent=(2**bits).toLocaleString();
+  const pill=$("#pill2");
+  if(level<step/2){pill.className="pill bad";pill.textContent="BELOW 1 LSB — STUCK";
+    $("#note2").innerHTML=`<b>The signal is under half an LSB.</b> Every sample rounds to the same code — the ${dBFS(level)} sine simply vanishes. (This is exactly the problem dither fixes → tab 03.)`;}
+  else if(bits<=4){pill.className="pill warn";pill.textContent="COARSE — HARMONIC GRIT";
+    $("#note2").innerHTML=`With only <b>${2**bits} levels</b>, the error tracks the waveform — correlated error = <b>harmonic distortion</b>. Listen: the buzz changes pitch with the tone.`;}
+  else{pill.className="pill ok";pill.textContent=`${(2**bits).toLocaleString()} LEVELS`;
+    $("#note2").innerHTML=`At ${bits} bits the error is tiny and nearly random — approaching white noise at <b>${(6.02*bits+1.76).toFixed(1)} dB</b> below full scale. Drop the level and the bites reappear.`}
+}
+$("#slBits").addEventListener("input",e=>{S.quant.bits=+e.target.value;updQuant();});
+$("#slLvl").addEventListener("input",e=>{S.quant.level=Math.pow(10,e.target.value/50-2);updQuant();});
+
+/* ---------------- TAB 3 : DITHER ---------------- */
+const NR1=new Float32Array(2048),NR2=new Float32Array(2048);
+for(let i=0;i<2048;i++){NR1[i]=Math.random()-0.5;NR2[i]=Math.random()-0.5;}
+function drawDither(ts){
+  const cv=$("#cvDith"),c=cv.getContext("2d"),w=cv._w,h=cv._h; if(!w)return;
+  const {bits,level,on,type}=S.dith, step=2/Math.pow(2,bits), phase=ts*0.004;
+  gridBG(c,w,h);
+  const mL=46,mR=16, shim=(ts/140|0);
+  const scope=(y0,hh,title,withErr)=>{
+    const mid=y0+hh/2, amp=hh/2*(withErr?0.82:0.8)/ (withErr?step*1.15:1);
+    c.strokeStyle="rgba(24,34,54,.3)";c.setLineDash([3,4]);c.beginPath();
+    c.moveTo(mL,mid);c.lineTo(w-mR,mid);c.stroke();c.setLineDash([]);
+    label(c,mL,y0-6,title,SOFT,9);
+    // original
+    c.strokeStyle="rgba(43,95,217,.5)";c.lineWidth=1.4;c.beginPath();
+    for(let i=0;i<=600;i++){const t=i/600*0.02,v=level*Math.sin(2*Math.PI*440*t+phase);
+      const y=withErr?mid:(mid-v*amp);
+      i?c.lineTo(mL+i/600*(w-mL-mR),y):c.moveTo(mL,y);}
+    c.stroke();
+    if(withErr){ // err of original reference (flat 0 line already drawn)
+      c.strokeStyle=INK;c.lineWidth=1.4;c.beginPath();
+      for(let i=0;i<=600;i++){
+        const t=i/600*0.02, x_=level*Math.sin(2*Math.PI*440*t+phase);
+        const n=(i+shim)%2048;
+        const d=on?(type==="tpdf"?(NR1[n]+NR2[n])*step:NR1[n]*step*1.0):0;
+        const e=quant(x_+d,step)-x_;
+        i?c.lineTo(mL+i/600*(w-mL-mR),mid-e*amp):c.moveTo(mL,mid-e*amp);
+      }
+      c.stroke(); return;
+    }
+    // quantized output
+    c.strokeStyle=INK;c.lineWidth=1.8;c.beginPath();
+    let prev=null;
+    for(let i=0;i<=600;i++){
+      const t=i/600*0.02, x_=level*Math.sin(2*Math.PI*440*t+phase);
+      const n=(i+shim)%2048;
+      const d=on?(type==="tpdf"?(NR1[n]+NR2[n])*step:NR1[n]*step):0;
+      const y=mid-quant(x_+d,step)*amp;
+      if(prev===null)c.moveTo(mL,y);else{c.lineTo(mL+i/600*(w-mL-mR),prev);c.lineTo(mL+i/600*(w-mL-mR),y);}
+      prev=y;
+    }
+    c.lineTo(w-mR,prev);c.stroke();
+  };
+  const hA=(h-70)*0.5, hB=h-hA-64;
+  scope(26,hA,"OUTPUT — QUANTIZED "+(on?("WITH "+type.toUpperCase()+" DITHER"):"· NO DITHER"),false);
+  scope(hA+58,hB,"ERROR (OUTPUT − INPUT)"+(on?"  ·  RANDOM, UNCORRELATED":"  ·  STRUCTURED = DISTORTION"),true);
+  label(c,w-mR,26-6, "1 LSB = "+step.toFixed(3)+" FS", SOFT,9,"right");
+}
+function updDither(){
+  const {bits,level,on,type}=S.dith, step=2/Math.pow(2,bits);
+  $("#vDBits").textContent=bits+" bit"; $("#vDLvl").textContent=dBFS(level);
+  $("#rLsb2").textContent=step.toFixed(4);
+  $("#rFloor").textContent=on?"−"+(6.02*bits-2.1).toFixed(1)+" dB":"distortion-bound";
+  $("#rMode").textContent=on?"random noise (benign)":"harmonic distortion (ugly)";
+  const pill=$("#pill3");
+  pill.className="pill "+(on?"ok":"warn");
+  pill.textContent=on?("DITHER ON · "+type.toUpperCase()):"DITHER OFF";
+  $("#capDither").innerHTML=on
+    ?'error = <b style="color:'+TEAL+'">flat noise</b>'
+    :'error = <b style="color:'+MAG+'">wave-shaped distortion</b>';
+  $$("#segType button").forEach(b=>b.disabled=!on);
+  $("#note3").innerHTML=on
+    ?`<b>Trade-off made.</b> ${type==="tpdf"?"2 LSB p-p triangular":"1 LSB rectangular"} noise lifts the floor ~3 dB, but the quiet tone now rides on top of it — intact. Error is <b>uncorrelated</b>: it sounds like hiss, not buzz.`
+    :`<b>No dither.</b> Anything under 1 LSB (${step.toFixed(3)} FS) pins to a single code — the output flatlines or buzzes with <b>correlated harmonics</b>. Compare the two PLAY buttons below.`;
+}
+$("#slDBits").addEventListener("input",e=>{S.dith.bits=+e.target.value;updDither();});
+$("#slDLvl").addEventListener("input",e=>{S.dith.level=0.002*Math.pow(100,e.target.value/100);updDither();});
+$("#tgDither").addEventListener("change",e=>{S.dith.on=e.target.checked;updDither();});
+$$("#segType button").forEach(b=>b.addEventListener("click",()=>{
+  $$("#segType button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  S.dith.type=b.dataset.t; updDither();
+}));
+
+/* ---------------- TAB 4 : BUFFER ---------------- */
+function bufMath(){
+  const {size,rate,load}=S.buf;
+  const one=size/rate*1000, rt=2*one+0.8, cpu=6+2600/size+load;
+  return {one,rt,cpu,drop:cpu>100};
+}
+function drawBuffer(ts){
+  const cv=$("#cvBuf"),c=cv.getContext("2d"),w=cv._w,h=cv._h; if(!w)return;
+  const {size,rate}=S.buf, {rt,cpu,drop}=bufMath();
+  gridBG(c,w,h);
+  // pipeline
+  const bufW=22+Math.log2(size)*9, y=36, bh=56, gap=30;
+  const nodes=[["ADC",50],["IN BUF "+size,bufW],["DSP",64],["OUT BUF "+size,bufW],["DAC",50]];
+  const total=nodes.reduce((a,n)=>a+n[1],0)+gap*4;
+  let x=Math.max(10,(w-total)/2);
+  const centers=[], ranges=[];
+  c.font='10px "IBM Plex Mono",monospace';
+  nodes.forEach(([name,nw],i)=>{
+    c.fillStyle=drop&&i>0?"rgba(217,47,69,.06)":"rgba(43,95,217,.05)";
+    c.strokeStyle=drop?RED:INK; c.lineWidth=1.5;
+    c.beginPath(); c.roundRect(x,y,nw,bh,5); c.fill(); c.stroke();
+    c.fillStyle=drop?RED:INK; c.textAlign="center";
+    c.fillText(name,x+nw/2,y+bh/2+(nw>56?-2:4));
+    if(nw>56)c.fillText(size+" smp",x+nw/2,y+bh/2+11);
+    centers.push([x+nw/2,y+bh/2]); ranges.push([x,x+nw]);
+    if(i<4){c.strokeStyle="rgba(24,34,54,.4)";c.beginPath();c.moveTo(x+nw,y+bh/2);c.lineTo(x+nw+gap,y+bh/2);c.stroke();}
+    x+=nw+gap;
+  });
+  c.textAlign="left";
+  // pulse
+  const pts=[[ranges[0][0]-34,y+bh/2],...centers,[ranges[4][1]+34,y+bh/2]];
+  let len=0,segs=[];
+  for(let i=1;i<pts.length;i++){const L=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);segs.push(L);len+=L;}
+  const period=clamp(rt*55,900,4200), p=(ts%period)/period, d=p*len;
+  c.strokeStyle="rgba(232,93,38,.3)";c.lineWidth=3;c.beginPath();
+  c.moveTo(pts[0][0],pts[0][1]); pts.slice(1).forEach(q=>c.lineTo(q[0],q[1])); c.stroke();
+  let acc=0,px=pts[0][0],py=pts[0][1];
+  for(let i=0;i<segs.length;i++){
+    if(acc+segs[i]>=d){const f=(d-acc)/segs[i];
+      px=pts[i][0]+(pts[i+1][0]-pts[i][0])*f; py=pts[i][1]+(pts[i+1][1]-pts[i][1])*f; break;}
+    acc+=segs[i]; px=pts[i+1][0]; py=pts[i+1][1];
+  }
+  const blink=drop&&(ts/260|0)%2;
+  c.beginPath();c.arc(px,py,6,0,7);c.fillStyle=blink?RED:ORANGE;c.fill();
+  c.strokeStyle="#fff";c.lineWidth=2;c.stroke();
+  label(c,px,py-12,(p*rt).toFixed(1)+" ms",drop?RED:ORANGE,10,"center");
+  if(drop&&blink)label(c,w/2,y-10,"✕ BUFFER UNDERRUN — CLICKS & DROPOUTS",RED,11,"center");
+  // CPU bar
+  const cy=y+bh+34, cw=w-120, cx=60;
+  label(c,cx,cy-8,"SIMULATED CPU — INTERRUPT OVERHEAD + DSP",SOFT,9);
+  c.fillStyle="rgba(24,34,54,.07)"; c.fillRect(cx,cy,cw,14);
+  c.fillStyle=cpu>100?RED:cpu>75?AMBER:GREEN;
+  c.fillRect(cx,cy,cw*clamp(cpu,0,110)/110,14);
+  c.strokeStyle=INK;c.lineWidth=1.2;c.strokeRect(cx,cy,cw,14);
+  const x100=cx+cw*100/110;
+  c.strokeStyle=RED;c.beginPath();c.moveTo(x100,cy-3);c.lineTo(x100,cy+17);c.stroke();
+  label(c,cx+cw+8,cy+11,cpu.toFixed(0)+"%",cpu>100?RED:INK,11);
+  // ruler
+  const ry=h-58, maxMs=Math.max(30,rt*1.35), rx0=60, rw=w-120;
+  const XM=ms=>rx0+ms/maxMs*rw;
+  c.fillStyle="rgba(28,158,87,.1)";c.fillRect(XM(0),ry,XM(6)-XM(0),20);
+  c.fillStyle="rgba(227,154,45,.12)";c.fillRect(XM(6),ry,XM(15)-XM(6),20);
+  c.fillStyle="rgba(217,47,69,.08)";c.fillRect(XM(15),ry,XM(maxMs)-XM(15),20);
+  c.strokeStyle="rgba(24,34,54,.5)";c.beginPath();c.moveTo(rx0,ry+20);c.lineTo(rx0+rw,ry+20);c.stroke();
+  for(let ms=0;ms<=maxMs;ms+=5){
+    c.beginPath();c.moveTo(XM(ms),ry+20);c.lineTo(XM(ms),ry+25);c.stroke();
+    label(c,XM(ms),ry+37,ms+"",SOFT,9,"center");
+  }
+  c.strokeStyle=ORANGE;c.lineWidth=2.5;c.beginPath();c.moveTo(XM(rt),ry-6);c.lineTo(XM(rt),ry+25);c.stroke();
+  label(c,clamp(XM(rt),rx0+40,rx0+rw-40),ry-12,"round-trip "+rt.toFixed(2)+" ms",ORANGE,10,"center");
+  label(c,rx0,ry-12,"LATENCY RULER (exaggerated for feel — see click test)",SOFT,9);
+}
+function updBuf(){
+  const {size,rate,load}=S.buf, {one,rt,cpu,drop}=bufMath();
+  $("#vLoad").textContent=load+"%";
+  $("#rtBig").textContent=rt.toFixed(2)+" ms";
+  $("#rOne").textContent=one.toFixed(2)+" ms";
+  $("#rDist").textContent=(rt*0.343).toFixed(1)+" m";
+  const pill=$("#pill4");
+  if(drop){pill.className="pill bad";pill.textContent="DROPOUT RISK";}
+  else if(rt<6){pill.className="pill ok";pill.textContent="TRACKING-READY";}
+  else if(rt<12){pill.className="pill ok";pill.textContent="FINE FOR MIXING";}
+  else if(rt<20){pill.className="pill warn";pill.textContent="SLUGGISH";}
+  else{pill.className="pill bad";pill.textContent="TOO SLOW TO PLAY";}
+  $("#note4").innerHTML=`Round-trip = 2×N/fs + ~0.8 ms driver/codec. Halving the buffer halves latency but <b>doubles interrupt rate</b> — crank the DSP load and watch small buffers drop out while big ones coast.`;
+}
+$$("#segBuf button").forEach(b=>b.addEventListener("click",()=>{
+  $$("#segBuf button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  S.buf.size=+b.dataset.v; updBuf();
+}));
+$$("#segRate button").forEach(b=>b.addEventListener("click",()=>{
+  $$("#segRate button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  S.buf.rate=+b.dataset.v; updBuf();
+}));
+$("#slLoad").addEventListener("input",e=>{S.buf.load=+e.target.value;updBuf();});
+
+/* ---------------- AUDIO ENGINE ---------------- */
+let AC=null,curSrc=null,curBtn=null;
+function ensureAC(){
+  if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==="suspended")AC.resume();
+  return AC;
+}
+function stopSound(){
+  if(curSrc){try{curSrc.stop()}catch(e){}}
+  if(curBtn)curBtn.classList.remove("playing");
+  curSrc=null;curBtn=null;
+}
+function playBuf(buf,btn,delay=0,gain=0.22){
+  if(curBtn===btn){stopSound();return;}
+  stopSound();
+  const ac=ensureAC(),src=ac.createBufferSource(),g=ac.createGain();
+  src.buffer=buf;g.gain.value=gain;
+  src.connect(g).connect(ac.destination);
+  src.start(ac.currentTime+0.03+delay);
+  curSrc=src;curBtn=btn;btn.classList.add("playing");
+  src.onended=()=>{if(curSrc===src){btn.classList.remove("playing");curSrc=null;curBtn=null;}};
+}
+function env(i,n,fade=480){return Math.min(1,i/fade,(n-i)/fade);}
+function sineBuf(f,dur=1.1,amp=1){
+  const ac=ensureAC(),n=(ac.sampleRate*dur)|0,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=Math.sin(2*Math.PI*f*i/ac.sampleRate)*amp*env(i,n);
+  return b;
+}
+function heldBuf(f,fsSim,dur=1.1){
+  const ac=ensureAC(),n=(ac.sampleRate*dur)|0,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<n;i++){const k=Math.floor(i/ac.sampleRate*fsSim);
+    d[i]=Math.sin(2*Math.PI*f*k/fsSim)*env(i,n);}
+  return b;
+}
+function quantBuf(f,amp,bits,dur=1.1,dither=null){
+  const ac=ensureAC(),n=(ac.sampleRate*dur)|0,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);
+  const step=2/Math.pow(2,bits);
+  for(let i=0;i<n;i++){
+    let x=Math.sin(2*Math.PI*f*i/ac.sampleRate)*amp;
+    if(dither==="tpdf")x+=(Math.random()-1)*step;
+    else if(dither==="rpdf")x+=(Math.random()-0.5)*step;
+    d[i]=quant(x,step)*env(i,n);
+  }
+  return b;
+}
+function clickBuf(freq=1400){
+  const ac=ensureAC(),n=(ac.sampleRate*0.04)|0,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=Math.sin(2*Math.PI*freq*i/ac.sampleRate)*Math.exp(-i/(n*0.18));
+  return b;
+}
+$("#bTone").onclick=e=>playBuf(sineBuf(Math.min(S.samp.fin,20000)),e.target);
+$("#bSamp").onclick=e=>playBuf(heldBuf(Math.min(S.samp.fin,20000),Math.min(S.samp.fs,48000)),e.target);
+$("#bClean").onclick=e=>playBuf(sineBuf(440,1.1,S.quant.level),e.target);
+$("#bQuant").onclick=e=>playBuf(quantBuf(440,S.quant.level,S.quant.bits),e.target);
+$("#bNoD").onclick=e=>playBuf(quantBuf(440,S.dith.level,S.dith.bits),e.target);
+$("#bD").onclick=e=>playBuf(quantBuf(440,S.dith.level,S.dith.bits,1.1,S.dith.type),e.target);
+$("#bClick").onclick=e=>{
+  const ac=ensureAC(),{rt}=bufMath(),b=clickBuf(),t0=ac.currentTime+0.06;
+  const g=ac.createGain();g.gain.value=0.5;g.connect(ac.destination);
+  [t0,t0+rt/1000].forEach((t,i)=>{
+    const s=ac.createBufferSource();s.buffer=b;
+    const gg=ac.createGain();gg.gain.value=i?0.32:0.55;
+    s.connect(gg).connect(g.destination);s.start(t);
+  });
+  const btn=e.target;btn.classList.add("playing");
+  setTimeout(()=>btn.classList.remove("playing"),rt+350);
+};
+
+/* ---------------- MINI SCOPE ---------------- */
+const M={pts:[],x:0};
+function drawMini(ts){
+  const cv=$("#cvMini"),c=cv.getContext("2d"),w=cv._w,h=cv._h; if(!w)return;
+  gridBG(c,w,h,16);
+  const mid=h/2,amp=h*0.34,val=x=>Math.sin(x/w*Math.PI*3.4 - ts*0.003)*amp;
+  M.x+=2.1;
+  if(M.x>w-6){M.x=0;M.pts=[];}
+  M.pts.push([M.x,val(M.x)]);
+  c.strokeStyle="rgba(12,143,133,.75)";c.lineWidth=1.3;c.beginPath();
+  M.pts.forEach((p,i)=>{if(i){c.lineTo(p[0],M.pts[i-1][1]);c.lineTo(p[0],p[1]);}});
+  c.stroke();
+  c.strokeStyle=BLUE;c.lineWidth=2;c.beginPath();
+  M.pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));
+  c.stroke();
+  const last=M.pts[M.pts.length-1];
+  c.beginPath();c.arc(last[0],last[1],3.4,0,7);c.fillStyle=INK;c.fill();
+  c.strokeStyle="#fff";c.lineWidth=1.5;c.stroke();
+}
+
+/* ---------------- TABS / LOOP ---------------- */
+const tabs=$$(".tab"),panels=$$(".panel");
+let activeIdx=0;
+function fitPanel(p){p.querySelectorAll("canvas").forEach(sizeCanvas);}
+function activate(i){
+  activeIdx=i;
+  tabs.forEach((t,j)=>{t.classList.toggle("on",j===i);t.setAttribute("aria-selected",j===i);});
+  panels.forEach((p,j)=>p.hidden=j!==i);
+  const p=panels[i];
+  p.classList.remove("enter"); void p.offsetWidth; p.classList.add("enter");
+  requestAnimationFrame(()=>fitPanel(p));
+}
+tabs.forEach(t=>t.addEventListener("click",()=>activate(+t.dataset.i)));
+document.querySelector(".tabs").addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight")activate((activeIdx+1)%4);
+  if(e.key==="ArrowLeft")activate((activeIdx+3)%4);
+});
+function loop(ts){
+  drawMini(ts);
+  if(activeIdx===0)drawSampling(ts);
+  if(activeIdx===1)drawQuant(ts);
+  if(activeIdx===2)drawDither(ts);
+  if(activeIdx===3)drawBuffer(ts);
+  requestAnimationFrame(loop);
+}
+window.addEventListener("resize",()=>{sizeCanvas($("#cvMini"));fitPanel(panels[activeIdx]);});
+
+/* reveal on scroll */
+const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add("in")),{threshold:.2});
+$$(".reveal").forEach(el=>io.observe(el));
+
+/* init */
+sizeCanvas($("#cvMini"));
+updSamp();updQuant();updDither();updBuf();
+activate(0);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
