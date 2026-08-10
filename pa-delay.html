@@ -6,6 +6,13 @@
 <title>PA Delay Alignment — Yell Entertainment Interactive Lab</title>
 <link rel="icon" type="image/png" href="yell-logo.png">
 <link rel="stylesheet" href="light.css">
+<style>
+  #pdSlowMo[aria-pressed="true"]{
+    background:#1e857a;
+    border-color:#1e857a;
+    color:#fff;
+  }
+</style>
 <meta property="og:title" content="PA Delay Alignment — Yell Entertainment Lab">
 <meta property="og:description" content="Mains + delay towers: set the delay, watch the wavefronts, hear the alignment.">
 <meta property="og:image" content="og-image.png">
@@ -41,6 +48,7 @@
     </div>
     <button class="play-btn fire" id="pdFire">⚡ Fire + listen</button>
     <button class="play-btn" id="pdAuto">▶ Auto-align</button>
+    <button class="play-btn" id="pdSlowMo" aria-pressed="false">🐢 Slow‑mo (10×)</button>
   </div>
 
   <div class="info-row">
@@ -101,7 +109,7 @@
   }
   window.addEventListener('resize',resize); resize();
 
-  const P={ tower:25, listen:40, delay:0, fired:false, t0:0 };
+  const P={ tower:25, listen:40, delay:0, fired:false, t0:0, slow:false, runFactor:1 };
   function times(){
     const tM=P.listen/V*1000;
     const tD=(P.listen-P.tower)/V*1000 + P.delay;
@@ -125,11 +133,18 @@
   }
   ['pdTower','pdListen','pdDelay'].forEach(id=>on(id,'input',updateInfo));
   on('pdAuto','click',()=>{ $('pdDelay').value=(P.tower/V*1000).toFixed(1); updateInfo(); });
+  on('pdSlowMo','click',()=>{
+    P.slow=!P.slow;
+    const b=$('pdSlowMo');
+    b.setAttribute('aria-pressed', String(P.slow));
+    b.textContent = P.slow ? '🐢 Slow‑mo: ON' : '🐢 Slow‑mo (10×)';
+  });
   on('pdFire','click',()=>{
     ensureAudio(); ctx.resume();
     const t=times();
-    clickAt(0.5, t.tM/1000);
-    clickAt(0.6, t.tD/1000);
+    P.runFactor = P.slow ? 10 : 1;
+    clickAt(0.5, t.tM/1000*P.runFactor);
+    clickAt(0.6, t.tD/1000*P.runFactor);
     P.fired=true; P.t0=performance.now();
   });
 
@@ -161,13 +176,18 @@
     G.fillText('listener',X(P.listen)+10,gy-10);
 
     if(P.fired){
-      const e=(performance.now()-P.t0)/1000;
+      const e=(performance.now()-P.t0)/1000/P.runFactor;
       const xm=V*e, xd=P.tower+V*(e-P.delay/1000);
       if(xm>P.listen+4 && xd>P.listen+4) P.fired=false;
+      const lane=6;
       if(xm<=60){ G.fillStyle=COLOR.teal; G.shadowColor=COLOR.teal; G.shadowBlur=8;
-        G.beginPath(); G.arc(X(Math.min(xm,60)),gy-14,5,0,Math.PI*2); G.fill(); G.shadowBlur=0; }
+        G.beginPath(); G.arc(X(Math.min(xm,60)),gy-14-lane,5,0,Math.PI*2); G.fill(); G.shadowBlur=0; }
       if(e>P.delay/1000 && xd<=60){ G.fillStyle=COLOR.amber; G.shadowColor=COLOR.amber; G.shadowBlur=8;
-        G.beginPath(); G.arc(X(Math.max(0,Math.min(xd,60))),gy-14,5,0,Math.PI*2); G.fill(); G.shadowBlur=0; }
+        G.beginPath(); G.arc(X(Math.max(0,Math.min(xd,60))),gy-14+lane,5,0,Math.PI*2); G.fill(); G.shadowBlur=0; }
+      if(P.runFactor>1){
+        G.fillStyle=COLOR.teal; G.font=`bold 11px ${FONT_MONO}`; G.textAlign='left';
+        G.fillText('SLOW-MO ×10', 10, 16);
+      }
     }
 
     const t=times();
