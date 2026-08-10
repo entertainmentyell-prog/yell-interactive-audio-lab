@@ -61,15 +61,20 @@
     <section class="panel" id="panel-offset">
       <p class="caption">Two phasors on the same wheel, held a fixed angle apart. Their projections add: aligned (0°) they double, opposed (180°) they cancel. Sweep the offset and listen to the sum swell and collapse at 220 Hz.</p>
       <div class="controls-row">
+        <div class="btn-group" id="oSrcBtns">
+          <button class="shape-btn active" data-src="sine">Sine</button>
+          <button class="shape-btn" data-src="complex">Complex</button>
+        </div>
+        <button class="shape-btn" id="oInvertBtn">Invert Polarity</button>
         <div class="slider-group">
-          <div class="label-row"><span>Phase offset Δ</span><span class="val" id="oVal">0°</span></div>
+          <div class="label-row"><span>Phase offset Δ (Time Delay)</span><span class="val" id="oVal">0°</span></div>
           <input type="range" id="oPhase" min="0" max="360" step="1" value="0" aria-label="Phase offset in degrees">
         </div>
         <button class="play-btn" id="playO">▶ Play</button>
       </div>
       <div class="info-row">
         <span class="info-label">Display</span>
-        <div class="readout" id="oReadout">Combined amplitude: <span class="hi">200%</span> of one tone — constructive</div>
+        <div class="readout" id="oReadout">Combined amplitude: <span class="hi">200%</span> (+6.02 dB relative to 1 tone) — constructive</div>
       </div>
       <div class="viz">
         <h4>Wheel: A (teal) · B (amber) · sum vector (dark) — projections at right</h4>
@@ -86,7 +91,7 @@
         </div>
         <div class="slider-group">
           <div class="label-row"><span>Frequency</span><span class="val" id="tFreqVal">440 Hz</span></div>
-          <input type="range" id="tFreq" min="100" max="2000" step="5" value="440" aria-label="Frequency in Hz">
+          <input type="range" id="tFreq" min="20" max="2000" step="5" value="440" aria-label="Frequency in Hz">
         </div>
         <button class="play-btn" id="playT">▶ Play</button>
       </div>
@@ -100,7 +105,7 @@
         <canvas id="cvTime"></canvas>
       </div>
     </section>
-
+    
     <section class="panel" id="panel-xy">
       <p class="caption">Feed signal A to the horizontal and signal B to the vertical input of a scope. In phase draws a diagonal, 90° draws a circle, 180° draws the opposite diagonal — the classic engineer's phase check.</p>
       <div class="controls-row">
@@ -228,26 +233,55 @@
     if(s){b.textContent='■ Stop';b.classList.add('playing');}
     else{b.textContent='▶ Play';b.classList.remove('playing');}
   }
-  function drawWheelBase(g,cx,cy,R){
-    g.strokeStyle=COLOR.rim;g.lineWidth=1.5;
-    g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.stroke();
-    g.strokeStyle=COLOR.grid;g.lineWidth=1;
-    g.beginPath();g.moveTo(cx-R,cy);g.lineTo(cx+R,cy);g.stroke();
-    g.beginPath();g.moveTo(cx,cy-R);g.lineTo(cx,cy+R);g.stroke();
-    for(let a=0;a<360;a+=30){
-      const rad=a*Math.PI/180,major=a%90===0,r0=major?R-9:R-5;
-      g.strokeStyle=major?COLOR.rim:COLOR.grid;
-      g.beginPath();
-      g.moveTo(cx+r0*Math.cos(rad),cy-r0*Math.sin(rad));
-      g.lineTo(cx+R*Math.cos(rad),cy-R*Math.sin(rad));
-      g.stroke();
+function drawWheelBase(g, cx, cy, R, showDB = false) {
+  // Outer rim & primary grid axes
+  g.strokeStyle = COLOR.rim; g.lineWidth = 1.5;
+  g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = COLOR.grid; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(cx - R, cy); g.lineTo(cx + R, cy); g.stroke();
+  g.beginPath(); g.moveTo(cx, cy - R); g.lineTo(cx, cy + R); g.stroke();
+  
+  // Radial ticks
+  for (let a = 0; a < 360; a += 30) {
+    const rad = a * Math.PI / 180, major = a % 90 === 0, r0 = major ? R - 9 : R - 5;
+    g.strokeStyle = major ? COLOR.rim : COLOR.grid;
+    g.beginPath();
+    g.moveTo(cx + r0 * Math.cos(rad), cy - r0 * Math.sin(rad));
+    g.lineTo(cx + R * Math.cos(rad), cy - R * Math.sin(rad));
+    g.stroke();
+    
+    // dB Markings mode (Tab 2)
+    if (showDB) {
+      const linGain = 2 * Math.abs(Math.cos(rad / 2));
+      const dBVal = 20 * Math.log10(linGain); 
+      
+      let dbStr = "";
+      if (a === 180) dbStr = "-∞dB";
+      else if (dBVal >= 0) dbStr = "+" + dBVal.toFixed(1) + "dB";
+      else dbStr = dBVal.toFixed(1) + "dB";
+
+      const labelR = R + 18;
+      const lx = cx + labelR * Math.cos(rad);
+      const ly = cy - labelR * Math.sin(rad);
+
+      g.fillStyle = COLOR.paperDim;
+      g.font = `9px ${FONT_MONO}`;
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText(dbStr, lx, ly);
     }
-    g.fillStyle=COLOR.paperDim;g.font=`10px ${FONT_MONO}`;
-    g.textAlign='left';g.fillText('0°',cx+R+6,cy+3);
-    g.textAlign='center';g.fillText('90°',cx,cy-R-6);
-    g.textAlign='right';g.fillText('180°',cx-R-6,cy+3);
-    g.textAlign='center';g.fillText('270°',cx,cy+R+14);
   }
+
+  // Standard Degree Labels mode (Tab 1, 3, 4)
+  if (!showDB) {
+    g.fillStyle = COLOR.paperDim; g.font = `10px ${FONT_MONO}`;
+    g.textBaseline = 'alphabetic';
+    g.textAlign = 'left'; g.fillText('0°', cx + R + 6, cy + 3);
+    g.textAlign = 'center'; g.fillText('90°', cx, cy - R - 6);
+    g.textAlign = 'right'; g.fillText('180°', cx - R - 6, cy + 3);
+    g.textAlign = 'center'; g.fillText('270°', cx, cy + R + 14);
+  }
+}
   function drawPhasor(g,cx,cy,len,deg,color,width){
     const rad=deg*Math.PI/180,tx=cx+len*Math.cos(rad),ty=cy-len*Math.sin(rad);
     g.strokeStyle=color;g.lineWidth=width||2.5;
@@ -318,70 +352,218 @@
     g.fillStyle=COLOR.paper;g.beginPath();g.arc(x0,cy-Math.sin(th)*len,4,0,Math.PI*2);g.fill();
   }
   $('wFreq').dispatchEvent(new Event('input'));
+ 
+  // ============ 2: PHASE OFFSET ============
+  const m2 = { delta: 0, theta: 0, src: 'sine', inverted: false, playing: false, oscA: null, oscB: null, gainB: null, delay: null };
+  const cvO = reg('cvOffset');
 
-  // ============ 2: PHASE OFFSET (corrected) ============
-  const m2={delta:0,theta:0,playing:false,oscA:null,oscB:null,delay:null};
-  const cvO=reg('cvOffset');
-  on('oPhase','input',e=>{
-    m2.delta=+e.target.value;
-    setText('oVal',m2.delta+'°');
-    const rad=m2.delta*Math.PI/180,pct=Math.round(200*Math.abs(Math.cos(rad/2)));
-    const desc=pct>150?'constructive':pct<50?'destructive':'partial';
-    const el=$('oReadout');
-    if(el)el.innerHTML='Combined amplitude: <span class="hi">'+pct+'%</span> of one tone — '+desc;
-    if(m2.delay)setParam(m2.delay.delayTime,(m2.delta/360)/F_REF);
+  // Source switcher listener
+  document.querySelectorAll('#oSrcBtns .shape-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#oSrcBtns .shape-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      m2.src = btn.dataset.src;
+      if (m2.playing) { stopM2(); playM2(); }
+    });
   });
-  on('playO','click',()=>m2.playing?stopM2():playM2());
-  function playM2(){
-    ensureAudio();ctx.resume();stopAllModules();
-    m2.oscA=ctx.createOscillator();m2.oscA.type='sine';m2.oscA.frequency.value=F_REF;
-    m2.oscB=ctx.createOscillator();m2.oscB.type='sine';m2.oscB.frequency.value=F_REF;
-    const gA=ctx.createGain();gA.gain.value=0.16;
-    const gB=ctx.createGain();gB.gain.value=0.16;
-    m2.delay=ctx.createDelay(1.0);m2.delay.delayTime.value=(m2.delta/360)/F_REF;
-    m2.oscA.connect(gA);gA.connect(masterGain);
-    m2.oscB.connect(m2.delay);m2.delay.connect(gB);gB.connect(masterGain);
-    m2.oscA.start();m2.oscB.start();
-    m2.playing=true;updatePlayBtn('playO',true);
+
+  // Polarity Inversion Switch Listener
+  on('oInvertBtn', 'click', () => {
+    m2.inverted = !m2.inverted;
+    const btn = $('oInvertBtn');
+    if (btn) btn.classList.toggle('active', m2.inverted);
+    
+    // Invert Web Audio gain node live if playing
+    if (m2.gainB) {
+      const baseGain = m2.src === 'complex' ? 0.08 : 0.16;
+      setParam(m2.gainB.gain, m2.inverted ? -baseGain : baseGain);
+    }
+    
+    // Trigger slider input recalculation for readout text
+    $('oPhase').dispatchEvent(new Event('input'));
+  });
+
+  on('oPhase', 'input', e => {
+    m2.delta = +e.target.value;
+    if (!m2.playing) m2.theta = 0;
+    setText('oVal', m2.delta + '°');
+    
+    const invMult = m2.inverted ? -1 : 1;
+    const dRad = m2.delta * Math.PI / 180;
+    
+    let maxCombined = 0;
+    const steps = 360;
+    for (let i = 0; i < steps; i++) {
+      const t = (i / steps) * Math.PI * 2;
+      const combined = evalWaveShape(t, m2.src) + evalWaveShape(t + dRad, m2.src) * invMult;
+      if (Math.abs(combined) > maxCombined) maxCombined = Math.abs(combined);
+    }
+
+    let singleMax = 0;
+    for (let i = 0; i < steps; i++) {
+      const v = Math.abs(evalWaveShape((i / steps) * Math.PI * 2, m2.src));
+      if (v > singleMax) singleMax = v;
+    }
+
+    const linRatio = maxCombined / singleMax;
+    const pct = Math.round(100 * (maxCombined / (2 * singleMax)));
+    
+    const dbVal = 20 * Math.log10(linRatio);
+    const dbStr = maxCombined < 0.001 ? '-∞ dB' : (dbVal >= 0 ? '+' : '') + dbVal.toFixed(2) + ' dB';
+    
+    const desc = pct > 75 ? 'constructive' : pct < 25 ? 'destructive' : 'partial';
+    const el = $('oReadout');
+    if (el) el.innerHTML = 'Combined amplitude: <span class="hi">' + pct + '%</span> (' + dbStr + ' relative to 1 tone) — ' + desc;
+    if (m2.delay) setParam(m2.delay.delayTime, ((360 - (m2.delta % 360)) / 360) / F_REF);
+  });
+
+  on('playO', 'click', () => m2.playing ? stopM2() : playM2());
+
+  // Generates custom 3-harmonic PeriodicWave matching the visual complex waveform
+  function createComplexWave(audioCtx) {
+    const real = new Float32Array([0, 0, 0, 0]); // Cosine terms
+    const imag = new Float32Array([0, 1.0, 0.5, 0.25]); // Sine terms
+    return audioCtx.createPeriodicWave(real, imag);
   }
-  function stopM2(){
-    [m2.oscA,m2.oscB].forEach(o=>{if(o){try{o.stop();}catch(e){}o.disconnect();}});
-    if(m2.delay){m2.delay.disconnect();m2.delay=null;}
-    m2.oscA=m2.oscB=null;m2.playing=false;updatePlayBtn('playO',false);
+
+  function playM2() {
+    ensureAudio(); ctx.resume(); stopAllModules();
+    
+    m2.oscA = ctx.createOscillator();
+    m2.oscB = ctx.createOscillator();
+
+    if (m2.src === 'complex') {
+      const customWave = createComplexWave(ctx);
+      m2.oscA.setPeriodicWave(customWave);
+      m2.oscB.setPeriodicWave(customWave);
+    } else {
+      m2.oscA.type = 'sine';
+      m2.oscB.type = 'sine';
+    }
+
+    m2.oscA.frequency.value = F_REF;
+    m2.oscB.frequency.value = F_REF;
+    
+    const baseGain = m2.src === 'complex' ? 0.08 : 0.16;
+    const gA = ctx.createGain(); gA.gain.value = baseGain;
+    m2.gainB = ctx.createGain(); m2.gainB.gain.value = m2.inverted ? -baseGain : baseGain;
+    
+    m2.delay = ctx.createDelay(1.0);
+    m2.delay.delayTime.value = ((360 - (m2.delta % 360)) / 360) / F_REF;
+    
+    m2.oscA.connect(gA); gA.connect(masterGain);
+    m2.oscB.connect(m2.delay); m2.delay.connect(m2.gainB); m2.gainB.connect(masterGain);
+    m2.oscA.start(); m2.oscB.start();
+    m2.playing = true; updatePlayBtn('playO', true);
   }
-  function drawM2(dt){
-    if(!cvO.ctx)return;
-    if(m2.playing)m2.theta=(m2.theta+360*(F_REF/100)*dt)%360;
+
+  function stopM2() {
+    [m2.oscA, m2.oscB].forEach(o => { if (o) { try { o.stop(); } catch (e) {} o.disconnect(); } });
+    if (m2.delay) { m2.delay.disconnect(); m2.delay = null; }
+    m2.oscA = m2.oscB = m2.gainB = null; 
+    m2.playing = false; 
+    m2.theta = 0;
+    updatePlayBtn('playO', false);
+  }
+
+  function evalWaveShape(t, type) {
+    if (type === 'complex') {
+      return Math.sin(t) + 0.5 * Math.sin(2 * t) + 0.25 * Math.sin(3 * t);
+    }
+    return Math.sin(t);
+  }
+
+  function drawM2(dt) {
+    if (!cvO.ctx) return;
+    if (m2.playing) m2.theta = (m2.theta + 360 * (F_REF / 100) * dt) % 360;
     clear(cvO);
-    const g=cvO.ctx,w=cvO.w,h=cvO.h;
-    const R=Math.min(h*0.38,100),cx=R+40,cy=h/2;
-    drawWheelBase(g,cx,cy,R);
-    const len=R*0.5,aA=m2.theta,aB=m2.theta-m2.delta;
-    const rA=aA*Math.PI/180,rB=aB*Math.PI/180;
-    const sx=Math.cos(rA)+Math.cos(rB),sy=Math.sin(rA)+Math.sin(rB);
-    drawPhasor(g,cx,cy,Math.hypot(sx,sy)*len,Math.atan2(sy,sx)*180/Math.PI,COLOR.paper,2);
-    drawPhasor(g,cx,cy,len,aA,COLOR.teal,2.5);
-    drawPhasor(g,cx,cy,len,aB,COLOR.amber,2.5);
-    const x0=cx+R+30,k=(2*Math.PI*2)/(w-x0),th=m2.theta*Math.PI/180,dRad=m2.delta*Math.PI/180;
-    const wave=(off,color,wp)=>{
-      g.strokeStyle=color;g.lineWidth=wp;g.beginPath();
-      for(let px=x0;px<=w;px++){
-        const py=cy-Math.sin(th-k*(px-x0)-off)*len;
-        px===x0?g.moveTo(px,py):g.lineTo(px,py);
-      }
-      g.stroke();
-    };
-    wave(0,'rgba(30,133,122,0.5)',1.5);
-    wave(dRad,'rgba(238,140,18,0.6)',1.5);
-    g.strokeStyle=COLOR.paper;g.lineWidth=2.2;g.beginPath();
-    for(let px=x0;px<=w;px++){
-      const t=th-k*(px-x0),py=cy-(Math.sin(t)+Math.sin(t-dRad))*len;
-      px===x0?g.moveTo(px,py):g.lineTo(px,py);
+    const g = cvO.ctx, w = cvO.w, h = cvO.h;
+    const R = Math.min(h * 0.38, 100), cx = R + 40, cy = h / 2;
+    
+    drawWheelBase(g, cx, cy, R, true);
+    
+    const len = R * 0.35;
+    const aA = m2.theta;
+    const aB = m2.theta + m2.delta + (m2.inverted ? 180 : 0);
+    const rA = aA * Math.PI / 180, rB = aB * Math.PI / 180;
+    const sx = Math.cos(rA) + Math.cos(rB), sy = Math.sin(rA) + Math.sin(rB);
+    
+    drawPhasor(g, cx, cy, Math.hypot(sx, sy) * len, Math.atan2(sy, sx) * 180 / Math.PI, COLOR.paper, 2);
+    drawPhasor(g, cx, cy, len, aA, COLOR.teal, 2.5);
+    drawPhasor(g, cx, cy, len, aB, COLOR.amber, 2.5);
+    
+    const x0 = cx + R + 30, k = (2 * Math.PI * 2) / (w - x0);
+    const th = m2.theta * Math.PI / 180, dRad = m2.delta * Math.PI / 180;
+    const invMult = m2.inverted ? -1 : 1;
+    
+    // Waveform A (Teal)
+    g.strokeStyle = 'rgba(30,133,122,0.5)'; g.lineWidth = 1.5; g.beginPath();
+    for (let px = x0; px <= w; px++) {
+      const py = cy - evalWaveShape(th - k * (px - x0), m2.src) * len;
+      px === x0 ? g.moveTo(px, py) : g.lineTo(px, py);
     }
     g.stroke();
-  }
-  $('oPhase').dispatchEvent(new Event('input'));
 
+    // Waveform B (Amber)
+    g.strokeStyle = 'rgba(238,140,18,0.6)'; g.lineWidth = 1.5; g.beginPath();
+    for (let px = x0; px <= w; px++) {
+      const py = cy - (evalWaveShape(th - k * (px - x0) + dRad, m2.src) * invMult) * len;
+      px === x0 ? g.moveTo(px, py) : g.lineTo(px, py);
+    }
+    g.stroke();
+    
+    // Summed Waveform Calculation
+    let maxCombinedAmp = 0;
+    g.strokeStyle = COLOR.paper; g.lineWidth = 2.2; g.beginPath();
+    for (let px = x0; px <= w; px++) {
+      const t = th - k * (px - x0);
+      const valA = evalWaveShape(t, m2.src);
+      const valB = evalWaveShape(t + dRad, m2.src) * invMult;
+      const combinedVal = valA + valB;
+      
+      if (Math.abs(combinedVal) > maxCombinedAmp) maxCombinedAmp = Math.abs(combinedVal);
+      
+      const py = cy - combinedVal * len;
+      px === x0 ? g.moveTo(px, py) : g.lineTo(px, py);
+    }
+    g.stroke();
+    
+    // Dotted Peak Indicator Lines & Dynamic dB Readout
+    const peakYUpper = cy - maxCombinedAmp * len;
+    const peakYLower = cy + maxCombinedAmp * len;
+
+    if (maxCombinedAmp > 0.001) {
+      g.strokeStyle = COLOR.amber; g.lineWidth = 1;
+      g.setLineDash([3, 3]);
+      g.beginPath();
+      g.moveTo(x0, peakYUpper); g.lineTo(w, peakYUpper);
+      g.moveTo(x0, peakYLower); g.lineTo(w, peakYLower);
+      g.stroke();
+      g.setLineDash([]);
+    }
+
+    let singleMax = 0;
+    for (let i = 0; i < 360; i++) {
+      const v = Math.abs(evalWaveShape((i / 360) * Math.PI * 2, m2.src));
+      if (v > singleMax) singleMax = v;
+    }
+
+    const linRatio = maxCombinedAmp / singleMax;
+    const dbVal = 20 * Math.log10(linRatio);
+    const dbStr = maxCombinedAmp < 0.001 ? '-∞ dB' : (dbVal >= 0 ? '+' : '') + dbVal.toFixed(2) + ' dB';
+
+    const textY = maxCombinedAmp < 0.001 ? cy - 6 : peakYUpper - 4;
+    const midX = x0 + (w - x0) / 2;
+
+    g.fillStyle = COLOR.amber;
+    g.font = `11px ${FONT_MONO}`;
+    g.textAlign = 'center';
+    g.textBaseline = 'bottom';
+    g.fillText(dbStr, midX, textY);
+  }
+
+  $('oPhase').dispatchEvent(new Event('input'));
+  
   // ============ 3: PHASE <-> TIME ============
   const m3={delta:90,f:440,playing:false,oscA:null,oscB:null,delay:null};
   const cvT=reg('cvTime');
