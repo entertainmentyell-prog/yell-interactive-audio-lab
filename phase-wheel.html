@@ -603,8 +603,8 @@ function drawWheelBase(g, cx, cy, R, showDB = false) {
     const g=cvT.ctx,w=cvT.w,h=cvT.h;
     const R=Math.min(h*0.36,95),cx=R+40,cy=h/2;
     drawWheelBase(g,cx,cy,R);
-    drawPhasor(g,cx,cy,R*0.6,90,COLOR.teal,2.5);
-    drawPhasor(g,cx,cy,R*0.6,90-m3.delta,COLOR.amber,2.5);
+    drawPhasor(g,cx,cy,R*0.6,0,COLOR.teal,2.5);
+    drawPhasor(g,cx,cy,R*0.6,-m3.delta,COLOR.amber,2.5);
     const x0=cx+R+30,winSec=2/m3.f,dRad=m3.delta*Math.PI/180,amp=R*0.5;
     const wave=(off,color)=>{
       g.strokeStyle=color;g.lineWidth=2;g.beginPath();
