@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synthesis Lab — Yell Entertainment Interactive Lab</title>
+<link rel="icon" type="image/png" href="yell-logo.png">
+<meta property="og:title" content="Synthesis Lab — Yell Entertainment">
+<meta property="og:description" content="Oscillators, additive drawbars, subtractive filtering, ADSR and FM synthesis — interactive.">
+<meta property="og:image" content="og-image.png">
+<style>
+  :root{
+    --bg:#f6f4ef; --card:#ffffff; --line:#e7e2d8; --ink:#2b2a26; --muted:#8b877e;
+    --teal:#1e857a; --teal-bright:#2aa79b; --teal-soft:#e3f0ee;
+    --amber:#ee8c12; --amber-soft:#fdeeda; --amber-ink:#c07a10; --danger:#d65454;
+    --shadow:0 10px 30px rgba(80,65,40,.10); --radius:16px;
+    --mono: ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;
+    --sans: -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;color:var(--ink);font-family:var(--sans);}
+  body{background:
+    radial-gradient(900px 500px at 88% -10%, rgba(238,140,18,.07), transparent 60%),
+    radial-gradient(1000px 640px at -12% 34%, rgba(30,133,122,.08), transparent 60%),
+    var(--bg);}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .app{max-width:1080px;margin:0 auto;padding:28px 24px 60px;}
+  .app-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:6px 4px 18px;}
+  h1{font-size:1.4rem;font-weight:700;letter-spacing:0.02em;margin:0 0 6px;color:var(--ink);}
+  .subtitle{margin:0;color:var(--muted);font-size:0.78rem;font-family:var(--mono);}
+  .brand-rule{height:2px;border-radius:1px;margin:0 0 22px;background:linear-gradient(90deg,var(--teal),var(--amber));opacity:.85;}
+  .master-vol{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow);}
+  .master-vol label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:var(--mono);}
+  .app-footer{display:flex;justify-content:center;border-top:1px solid var(--line);margin-top:36px;padding-top:22px;}
+  .brand-logo{height:150px;width:auto;display:block;border-radius:18px;box-shadow:var(--shadow), 0 0 0 1px var(--line);}
+  .tabs{display:flex;gap:6px;margin-bottom:22px;padding:6px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);flex-wrap:wrap;}
+  .tab-btn{background:transparent;border:none;color:var(--muted);padding:10px 16px;font-size:0.72rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;border-radius:999px;transition:all .18s;}
+  .tab-btn:hover{color:var(--ink);background:var(--teal-soft);}
+  .tab-btn.active{color:var(--amber-ink);background:var(--amber-soft);font-weight:700;box-shadow:inset 0 0 0 1px rgba(238,140,18,.45);}
+  .panel{display:none;}
+  .panel.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion: reduce){ .panel.active{animation:none;} }
+  .caption{color:var(--muted);font-size:0.93rem;line-height:1.6;max-width:700px;margin:0 0 20px;}
+  .caption em{color:var(--ink);}
+  .controls-row{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:12px;padding:16px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .info-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .info-row .info-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-family:var(--mono);margin-right:6px;}
+  .btn-group{display:flex;gap:8px;flex-wrap:wrap;}
+  .shape-btn{background:var(--card);border:1px solid var(--line);color:var(--muted);padding:9px 16px;border-radius:999px;font-size:0.78rem;font-family:var(--mono);cursor:pointer;transition:all .15s;}
+  .shape-btn:hover{color:var(--ink);border-color:var(--teal);}
+  .shape-btn.active{color:#fff;background:var(--teal);border-color:var(--teal);font-weight:700;box-shadow:0 6px 16px rgba(30,133,122,.28);}
+  .slider-group{display:flex;flex-direction:column;gap:8px;min-width:130px;flex:1;}
+  .slider-group .label-row{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);font-family:var(--mono);}
+  .slider-group .val{color:var(--amber);font-weight:700;}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:#e3ddd2;border-radius:2px;outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--teal);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 8px rgba(30,133,122,.35);}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--teal);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 8px rgba(30,133,122,.35);}
+  .play-btn{background:var(--teal);color:#fff;border:none;padding:11px 24px;border-radius:999px;font-size:0.78rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 6px 16px rgba(30,133,122,.28);}
+  .play-btn:hover{filter:brightness(1.08);}
+  .play-btn:active{transform:scale(0.97);}
+  .play-btn.playing{background:var(--danger);box-shadow:0 6px 16px rgba(214,84,84,.3);}
+  .play-btn.fire{background:var(--amber);box-shadow:0 6px 16px rgba(238,140,18,.3);}
+  .readout{font-family:var(--mono);font-size:0.78rem;color:var(--ink);background:#faf8f4;border:1px solid var(--line);padding:9px 14px;border-radius:10px;}
+  .readout .hi{color:var(--amber);font-weight:700;}
+  .readout .ht{color:var(--teal);font-weight:700;}
+  .viz{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px;}
+  .viz h4{margin:0 0 10px;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;font-family:var(--mono);}
+  canvas{width:100%;height:300px;display:block;border-radius:12px;border:1px solid var(--line);
+    background:linear-gradient(180deg,#fbf9f5 0%,#f3eee4 100%);}
+  @media (max-width:640px){
+    .controls-row{flex-direction:column;align-items:stretch;}
+    .slider-group{min-width:100%;}
+    .brand-logo{height:120px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <div>
+      <h1>Synthesis Lab</h1>
+      <p class="subtitle">oscillators · additive · subtractive · ADSR · FM</p>
+    </div>
+    <div class="master-vol">
+      <label for="masterVol">Master</label>
+      <input type="range" id="masterVol" min="0" max="100" value="70" style="width:90px;" aria-label="Master volume">
+    </div>
+  </header>
+  <div class="brand-rule" aria-hidden="true"></div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="osc">Oscillators</button>
+    <button class="tab-btn" data-tab="add">Additive</button>
+    <button class="tab-btn" data-tab="sub">Subtractive</button>
+    <button class="tab-btn" data-tab="adsr">ADSR</button>
+    <button class="tab-btn" data-tab="fm">FM</button>
+  </nav>
+
+  <main>
+    <section class="panel active" id="panel-osc">
+      <p class="caption">Every synth sound starts with an oscillator. The four classic shapes are really just different <em>harmonic recipes</em>: a sine has one partial, saw adds every harmonic at 1/n (−6 dB/oct), square keeps the odd ones at 1/n, triangle keeps odd ones at 1/n² (−12 dB/oct) — which is why it sounds so much softer than a saw.</p>
+      <div class="controls-row">
+        <div class="btn-group" id="oWaves">
+          <button class="shape-btn" data-w="sine">Sine</button>
+          <button class="shape-btn" data-w="triangle">Triangle</button>
+          <button class="shape-btn" data-w="square">Square</button>
+          <button class="shape-btn active" data-w="sawtooth">Saw</button>
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Frequency</span><span class="val" id="oFVal">220 Hz</span></div>
+          <input type="range" id="oF" min="40" max="880" step="1" value="220" aria-label="Oscillator frequency">
+        </div>
+        <button class="play-btn" id="oPlay">▶ Play</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">wave = <span class="ht" id="oW">saw</span></div>
+        <div class="readout">tilt = <span class="hi" id="oTilt">−6 dB/oct</span></div>
+        <div class="readout">partials = <span class="ht" id="oPart">all (1/n)</span></div>
+      </div>
+      <div class="viz">
+        <h4>Left: waveform (3 cycles) · right: its harmonic series</h4>
+        <canvas id="cvOsc"></canvas>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-add">
+      <p class="caption">Fourier's promise: any periodic wave is a stack of sines at integer multiples of the fundamental. Push the drawbars and watch (and hear) the shape emerge. Try rebuilding the saw you just met — 100 / 50 / 33 / 25…</p>
+      <div class="controls-row">
+        <div class="btn-group" id="aPresets">
+          <button class="shape-btn" data-p="sine">Sine</button>
+          <button class="shape-btn" data-p="square">Square-ish</button>
+          <button class="shape-btn active" data-p="saw">Saw-ish</button>
+          <button class="shape-btn" data-p="tri">Triangle-ish</button>
+          <button class="shape-btn" data-p="organ">Organ</button>
+        </div>
+        <button class="play-btn" id="aPlay">▶ Play</button>
+      </div>
+      <div class="controls-row" id="aBars"></div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">8 partials</div>
+        <div class="readout">timbre = <span class="ht" id="aName">saw-ish</span></div>
+        <div class="readout">fundamental = <span class="hi">220 Hz</span></div>
+      </div>
+      <div class="viz">
+        <h4>Summed waveform · drawbar spectrum</h4>
+        <canvas id="cvAdd"></canvas>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-sub">
+      <p class="caption">The analog workhorse: a harmonically rich oscillator (saw/square) pushed through a resonant lowpass. The filter doesn't add anything — it <em>sculpts</em> by removing harmonics above cutoff, and Q makes the ones at the edge ring. Sweep cutoff and hear the classic "wah".</p>
+      <div class="controls-row">
+        <div class="btn-group" id="sWaves">
+          <button class="shape-btn active" data-w="sawtooth">Saw</button>
+          <button class="shape-btn" data-w="square">Square</button>
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Cutoff fc</span><span class="val" id="sFcVal">2.0 kHz</span></div>
+          <input type="range" id="sFc" min="0" max="1000" step="1" value="667" aria-label="Filter cutoff (log)">
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Resonance Q</span><span class="val" id="sQVal">5.0</span></div>
+          <input type="range" id="sQ" min="0.3" max="20" step="0.1" value="5" aria-label="Filter Q">
+        </div>
+        <button class="play-btn" id="sPlay">▶ Play</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">fc = <span class="ht" id="sFcr">2.0 kHz</span></div>
+        <div class="readout">Q = <span class="hi" id="sQr">5.0</span></div>
+        <div class="readout">harmonics inside fc = <span class="ht" id="sN">9</span></div>
+      </div>
+      <div class="viz">
+        <h4>Harmonic series on log-f · teal curve = resonant lowpass · amber dot = cutoff</h4>
+        <canvas id="cvSub"></canvas>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-adsr">
+      <p class="caption">Pitch is only half the instrument — the <em>contour</em> tells you what it is. A fast attack reads as plucked/struck; a slow attack as bowed or pad-like. Trigger a note and watch the amp envelope: Attack to peak, Decay to Sustain level, held, then the Release tail after note-off.</p>
+      <div class="controls-row">
+        <div class="slider-group">
+          <div class="label-row"><span>Attack</span><span class="val" id="eAVal">0.05 s</span></div>
+          <input type="range" id="eA" min="0.005" max="1" step="0.005" value="0.05" aria-label="Attack">
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Decay</span><span class="val" id="eDVal">0.20 s</span></div>
+          <input type="range" id="eD" min="0.01" max="1" step="0.01" value="0.2" aria-label="Decay">
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Sustain</span><span class="val" id="eSVal">70%</span></div>
+          <input type="range" id="eS" min="0" max="100" step="1" value="70" aria-label="Sustain">
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Release</span><span class="val" id="eRVal">0.40 s</span></div>
+          <input type="range" id="eR" min="0.02" max="2" step="0.01" value="0.4" aria-label="Release">
+        </div>
+        <button class="play-btn fire" id="eNote">⚡ Note</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">A = <span class="ht" id="eAr">0.05 s</span></div>
+        <div class="readout">D = <span class="ht" id="eDr">0.20 s</span></div>
+        <div class="readout">S = <span class="hi" id="eSr">70%</span></div>
+        <div class="readout">R = <span class="hi" id="eRr">0.40 s</span></div>
+        <div class="readout" id="eHint">fast A = pluck · slow A = pad</div>
+      </div>
+      <div class="viz">
+        <h4>Amp envelope · hold 0.8 s · note-off marker · release tail</h4>
+        <canvas id="cvAdsr"></canvas>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-fm">
+      <p class="caption">Frequency modulation: a modulator oscillator wiggles the carrier's frequency. The spectrum doesn't just tilt — it grows <em>sidebands</em> at carrier ± k·fm with amplitudes given by Bessel functions Jₖ(I). Integer ratios give harmonic, musical tones; the index controls how bright.</p>
+      <div class="controls-row">
+        <div class="slider-group">
+          <div class="label-row"><span>Carrier fc</span><span class="val" id="fCVal">220 Hz</span></div>
+          <input type="range" id="fC" min="80" max="880" step="1" value="220" aria-label="Carrier frequency">
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Ratio (fm/fc)</span><span class="val" id="fRVal">2.0</span></div>
+          <input type="range" id="fR" min="0.5" max="6" step="0.5" value="2" aria-label="Modulator ratio">
+        </div>
+        <div class="slider-group">
+          <div class="label-row"><span>Index I</span><span class="val" id="fIVal">3.0</span></div>
+          <input type="range" id="fI" min="0" max="10" step="0.1" value="3" aria-label="Modulation index">
+        </div>
+        <button class="play-btn" id="fPlay">▶ Play</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Display</span>
+        <div class="readout">fm = <span class="ht" id="fFm">440 Hz</span></div>
+        <div class="readout">Δf = <span class="hi" id="fDev">1320 Hz</span></div>
+        <div class="readout">BW (Carson) ≈ <span class="hi" id="fBw">3.5 kHz</span></div>
+      </div>
+      <div class="viz">
+        <h4>FM waveform · sideband spectrum (Bessel amplitudes)</h4>
+        <canvas id="cvFm"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <img class="brand-logo" src="yell-logo.png" alt="Yell Entertainment — Your Sound, Your Story!!">
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  let activeTab='osc';
+  const COLOR={ink:'#2b2a26',muted:'#8b877e',amber:'#ee8c12',amberInk:'#c07a10',teal:'#1e857a',
+               grid:'rgba(74,70,61,0.12)',rim:'rgba(74,70,61,0.35)'};
+  const FONT_MONO="ui-monospace,'SF Mono',Menlo,Consolas,monospace";
+  function $(id){return document.getElementById(id);}
+  function setText(id,s){const el=$(id);if(el&&el.textContent!==s)el.textContent=s;}
+  function on(id,ev,fn){const el=$(id);if(el)el.addEventListener(ev,fn);return el;}
+  function fmtF(f){return f>=1000?(f/1000).toFixed(1)+' kHz':Math.round(f)+' Hz';}
+
+  // ---------------- audio ----------------
+  let ctx=null,masterGain=null,limiter=null;
+  function ensureAudio(){
+    if(ctx)return;
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    masterGain=ctx.createGain();masterGain.gain.value=($('masterVol')?+$('masterVol').value:70)/100;
+    limiter=ctx.createDynamicsCompressor();limiter.threshold.value=-10;limiter.knee.value=0;limiter.ratio.value=20;
+    masterGain.connect(limiter);limiter.connect(ctx.destination);
+  }
+  on('masterVol','input',e=>{if(masterGain)masterGain.gain.setTargetAtTime(e.target.value/100,ctx.currentTime,0.02);});
+  function setParam(p,v,tc){if(!ctx||!p)return;p.setTargetAtTime(v,ctx.currentTime,tc||0.015);}
+
+  // ---------------- canvases ----------------
+  const canvases=[];
+  function reg(id){const el=$(id);const c={el,ctx:null,w:0,h:0};if(el){canvases.push(c);resizeOne(c);}return c;}
+  function resizeOne(c){
+    if(!c.el)return;
+    const dpr=window.devicePixelRatio||1,r=c.el.getBoundingClientRect();
+    c.w=Math.max(r.width,50);c.h=Math.max(r.height,50);
+    c.el.width=c.w*dpr;c.el.height=c.h*dpr;
+    c.ctx=c.el.getContext('2d');c.ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  let resizeTO;
+  window.addEventListener('resize',()=>{clearTimeout(resizeTO);resizeTO=setTimeout(()=>canvases.forEach(resizeOne),120);});
+  function clear(c){if(c.ctx)c.ctx.clearRect(0,0,c.w,c.h);}
+  function waveAt(w,ph){
+    const x=ph-Math.floor(ph);
+    if(w==='sine')return Math.sin(2*Math.PI*ph);
+    if(w==='square')return Math.sin(2*Math.PI*ph)>=0?1:-1;
+    if(w==='sawtooth')return 2*x-1;
+    return 4*Math.abs(x-0.5)-1;
+  }
+  function harmAmp(w,n){
+    if(w==='sine')return n===1?1:0;
+    if(w==='square')return n%2?(1/n):0;
+    if(w==='triangle')return n%2?(1/(n*n)):0;
+    return 1/n;
+  }
+  function drawWave(g,x0,y0,ww,wh,fn,color){
+    g.strokeStyle=color;g.lineWidth=2.2;g.beginPath();
+    for(let i=0;i<=ww;i++){
+      const v=fn(i/ww);
+      const px=x0+i,py=y0+wh/2-v*(wh/2-6);
+      i===0?g.moveTo(px,py):g.lineTo(px,py);
+    }
+    g.stroke();
+  }
+  function drawBars(g,x0,y0,ww,wh,amps,color){
+    const n=amps.length;
+    const bw=ww/(n+1);
+    for(let i=0;i<n;i++){
+      const a=amps[i];
+      if(a<=0.001)continue;
+      g.fillStyle=i===0?COLOR.amber:color;
+      g.fillRect(x0+bw*(i+0.6)-bw*0.22,y0+wh-a*(wh-10),bw*0.44,a*(wh-10));
+      g.fillStyle=COLOR.muted;g.font=`8px ${FONT_MONO}`;g.textAlign='center';
+      g.fillText(i+1,x0+bw*(i+0.6),y0+wh+9);
+    }
+  }
+
+  // ================= 1: OSCILLATORS =================
+  const O={w:'sawtooth',f:220,on:false,osc:null};
+  const cvO=reg('cvOsc');
+  function updateO(){
+    setText('oFVal',O.f+' Hz');
+    setText('oW',O.w);
+    setText('oTilt',O.w==='sine'?'—':O.w==='triangle'?'−12 dB/oct':'−6 dB/oct');
+    setText('oPart',O.w==='sine'?'1':O.w==='sawtooth'?'all (1/n)':O.w==='square'?'odd (1/n)':'odd (1/n²)');
+    if(O.osc)setParam(O.osc.frequency,O.f);
+  }
+  on('oF','input',e=>{O.f=+e.target.value;updateO();});
+  document.querySelectorAll('#oWaves .shape-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#oWaves .shape-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');O.w=b.dataset.w;
+      if(O.osc)O.osc.type=O.w;
+      updateO();
+    });
+  });
+  on('oPlay','click',()=>O.on?stopO():playO());
+  function playO(){
+    ensureAudio();ctx.resume();stopAll();
+    O.osc=ctx.createOscillator();O.osc.type=O.w;O.osc.frequency.value=O.f;
+    const g=ctx.createGain();g.gain.value=0.18;
+    O.osc.connect(g);g.connect(masterGain);O.osc.start();O.on=true;
+    const b=$('oPlay');if(b){b.textContent='■ Stop';b.classList.add('playing');}
+  }
+  function stopO(){
+    if(O.osc){try{O.osc.stop();}catch(e){}O.osc.disconnect();O.osc=null;}
+    O.on=false;
+    const b=$('oPlay');if(b){b.textContent='▶ Play';b.classList.remove('playing');}
+  }
+  function drawO(){
+    if(!cvO.ctx)return;
+    clear(cvO);
+    const g=cvO.ctx,w=cvO.w,h=cvO.h;
+    const mid=Math.floor(w*0.44);
+    g.strokeStyle=COLOR.rim;g.lineWidth=1;
+    g.beginPath();g.moveTo(mid,10);g.lineTo(mid,h-16);g.stroke();
+    drawWave(g,10,10,mid-20,h-26,ph=>waveAt(O.w,ph*3),COLOR.teal);
+    const amps=[];for(let n=1;n<=16;n++)amps.push(harmAmp(O.w,n));
+    drawBars(g,mid+6,10,w-mid-16,h-26,amps,'rgba(30,133,122,0.7)');
+  }
+  updateO();
+
+  // ================= 2: ADDITIVE =================
+  const PRESETS={
+    sine:[100,0,0,0,0,0,0,0],
+    square:[100,0,33,0,20,0,14,0],
+    saw:[100,50,33,25,20,17,14,12],
+    tri:[100,0,11,0,4,0,2,0],
+    organ:[100,0,80,0,60,0,35,20]
+  };
+  const A={amps:PRESETS.saw.slice(),on:false,oscs:[],gains:[],name:'saw-ish'};
+  const cvA=reg('cvAdd');
+  const barsRow=$('aBars');
+  for(let n=1;n<=8;n++){
+    const d=document.createElement('div');d.className='slider-group';d.style.minWidth='70px';
+    d.innerHTML='<div class="label-row"><span>H'+n+'</span></div>'+
+      '<input type="range" id="aH'+n+'" min="0" max="100" step="1" value="'+A.amps[n-1]+'" aria-label="Harmonic '+n+'">';
+    barsRow.appendChild(d);
+  }
+  function applyA(){
+    for(let n=1;n<=8;n++){
+      if(A.gains[n-1])setParam(A.gains[n-1].gain,A.amps[n-1]/100*0.16);
+      const s=$('aH'+n);if(s&&+s.value!==A.amps[n-1])s.value=A.amps[n-1];
+    }
+  }
+  for(let n=1;n<=8;n++){
+    on('aH'+n,'input',e=>{A.amps[n-1]=+e.target.value;A.name='custom';setText('aName','custom');applyA();});
+  }
+  document.querySelectorAll('#aPresets .shape-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#aPresets .shape-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      A.amps=PRESETS[b.dataset.p].slice();A.name=b.textContent;
+      setText('aName',b.textContent);applyA();
+    });
+  });
+  on('aPlay','click',()=>A.on?stopA():playA());
+  function playA(){
+    ensureAudio();ctx.resume();stopAll();
+    A.oscs=[];A.gains=[];
+    for(let n=1;n<=8;n++){
+      const o=ctx.createOscillator();o.type='sine';o.frequency.value=220*n;
+      const g=ctx.createGain();g.gain.value=A.amps[n-1]/100*0.16;
+      o.connect(g);g.connect(masterGain);o.start();
+      A.oscs.push(o);A.gains.push(g);
+    }
+    A.on=true;
+    const b=$('aPlay');if(b){b.textContent='■ Stop';b.classList.add('playing');}
+  }
+  function stopA(){
+    A.oscs.forEach(o=>{try{o.stop();}catch(e){}o.disconnect();});
+    A.oscs=[];A.gains=[];A.on=false;
+    const b=$('aPlay');if(b){b.textContent='▶ Play';b.classList.remove('playing');}
+  }
+  function drawA(){
+    if(!cvA.ctx)return;
+    clear(cvA);
+    const g=cvA.ctx,w=cvO? cvA.w:0;
+    const mid=Math.floor(cvA.w*0.44);
+    g.strokeStyle=COLOR.rim;g.lineWidth=1;
+    g.beginPath();g.moveTo(mid,10);g.lineTo(mid,cvA.h-16);g.stroke();
+    drawWave(g,10,10,mid-20,cvA.h-26,ph=>{
+      let s=0;for(let n=1;n<=8;n++)s+=A.amps[n-1]/100*Math.sin(2*Math.PI*n*ph);
+      return s*0.7;
+    },COLOR.teal);
+    drawBars(g,mid+6,10,cvA.w-mid-16,cvA.h-26,A.amps.map(v=>v/100),'rgba(30,133,122,0.7)');
+  }
+
+  // ================= 3: SUBTRACTIVE =================
+  const S={w:'sawtooth',fc:2000,q:5,on:false,osc:null,filt:null};
+  const cvS=reg('cvSub');
+  function sFcFromSlider(v){return 40*Math.pow(500,v/1000);} // 40..20000
+  function filtMag(f){
+    const x=f/S.fc;
+    return 1/Math.sqrt(Math.pow(1-x*x,2)+Math.pow(x/S.q,2));
+  }
+  function updateS(){
+    setText('sFcVal',fmtF(S.fc));setText('sFcr',fmtF(S.fc));
+    setText('sQVal',S.q.toFixed(1));setText('sQr',S.q.toFixed(1));
+    setText('sN',Math.max(1,Math.floor(S.fc/220)));
+    if(S.filt){setParam(S.filt.frequency,S.fc);setParam(S.filt.Q,S.q);}
+  }
+  on('sFc','input',e=>{S.fc=sFcFromSlider(+e.target.value);updateS();});
+  on('sQ','input',e=>{S.q=+e.target.value;updateS();});
+  document.querySelectorAll('#sWaves .shape-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('#sWaves .shape-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');S.w=b.dataset.w;
+      if(S.osc)S.osc.type=S.w;
+    });
+  });
+  on('sPlay','click',()=>S.on?stopS():playS());
+  function playS(){
+    ensureAudio();ctx.resume();stopAll();
+    S.osc=ctx.createOscillator();S.osc.type=S.w;S.osc.frequency.value=220;
+    S.filt=ctx.createBiquadFilter();S.filt.type='lowpass';
+    S.filt.frequency.value=S.fc;S.filt.Q.value=S.q;
+    const g=ctx.createGain();g.gain.value=0.22;
+    S.osc.connect(S.filt);S.filt.connect(g);g.connect(masterGain);
+    S.osc.start();S.on=true;
+    const b=$('sPlay');if(b){b.textContent='■ Stop';b.classList.add('playing');}
+  }
+  function stopS(){
+    if(S.osc){try{S.osc.stop();}catch(e){}S.osc.disconnect();}
+    if(S.filt)S.filt.disconnect();
+    S.on=false;S.osc=null;
+    const b=$('sPlay');if(b){b.textContent='▶ Play';b.classList.remove('playing');}
+  }
+  function drawS(){
+    if(!cvS.ctx)return;
+    clear(cvS);
+    const g=cvS.ctx,w=cvS.w,h=cvS.h;
+    const padL=36,padR=12,padT=12,padB=24;
+    const fMin=Math.log10(40),fMax=Math.log10(8000);
+    const X=f=>padL+((Math.log10(f)-fMin)/(fMax-fMin))*(w-padL-padR);
+    const Y=v=>padT+(1-v)*(h-padT-padB);
+    g.strokeStyle=COLOR.grid;g.lineWidth=1;g.fillStyle=COLOR.muted;g.font=`9px ${FONT_MONO}`;
+    [100,220,440,880,1760,3520,7040].forEach((f,i)=>{
+      g.beginPath();g.moveTo(X(f),Y(0));g.lineTo(X(f),Y(1));g.stroke();
+      g.textAlign='center';g.fillText('H'+(i+1),X(f),h-8);
+    });
+    // harmonic bars
+    for(let n=1;n<=32;n++){
+      const a=harmAmp(S.w,n);if(a<=0.004)continue;
+      const f=220*n;if(f>8000)break;
+      g.fillStyle='rgba(30,133,122,0.5)';
+      g.fillRect(X(f)-2,Y(a),4,(1-a)*(h-padT-padB));
+    }
+    // filter curve
+    g.strokeStyle=COLOR.teal;g.lineWidth=2.4;g.beginPath();
+    for(let i=0;i<=200;i++){
+      const f=Math.pow(10,fMin+(fMax-fMin)*i/200);
+      const m=Math.min(1.6,filtMag(f));
+      const px=X(f),py=Y(m/1.6);
+      i===0?g.moveTo(px,py):g.lineTo(px,py);
+    }
+    g.stroke();
+    g.fillStyle=COLOR.amber;g.beginPath();g.arc(X(S.fc),Y(filtMag(S.fc)/1.6),5,0,Math.PI*2);g.fill();
+  }
+  updateS();
+
+  // ================= 4: ADSR =================
+  const E={a:0.05,d:0.2,s:0.7,r:0.4};
+  const cvE=reg('cvAdsr');
+  function updateE(){
+    setText('eAVal',E.a.toFixed(2)+' s');setText('eAr',E.a.toFixed(2)+' s');
+    setText('eDVal',E.d.toFixed(2)+' s');setText('eDr',E.d.toFixed(2)+' s');
+    setText('eSVal',Math.round(E.s*100)+'%');setText('eSr',Math.round(E.s*100)+'%');
+    setText('eRVal',E.r.toFixed(2)+' s');setText('eRr',E.r.toFixed(2)+' s');
+    setText('eHint',E.a<0.05?'fast A = pluck / perc':E.a<0.3?'medium A = brass-ish':'slow A = pad / bow');
+  }
+  ['eA','eD','eS','eR'].forEach(id=>{
+    on(id,'input',e=>{
+      if(id==='eS')E.s=+e.target.value/100;else E[id.slice(1).toLowerCase()]=+e.target.value;
+      updateE();
+    });
+  });
+  on('eNote','click',()=>{
+    ensureAudio();ctx.resume();
+    const t=ctx.currentTime;
+    const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=220;
+    const g=ctx.createGain();
+    const hold=0.8;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(0.25,t+E.a);
+    g.gain.linearRampToValueAtTime(0.25*E.s,t+E.a+E.d);
+    g.gain.setValueAtTime(0.25*E.s,t+E.a+E.d+hold);
+    g.gain.linearRampToValueAtTime(0.0001,t+E.a+E.d+hold+E.r);
+    o.connect(g);g.connect(masterGain);
+    o.start(t);o.stop(t+E.a+E.d+hold+E.r+0.1);
+  });
+  function drawE(){
+    if(!cvE.ctx)return;
+    clear(cvE);
+    const g=cvE.ctx,w=cvE.w,h=cvE.h;
+    const hold=0.8;
+    const T=E.a+E.d+hold+E.r+0.2;
+    const padL=30,padR=12,padT=14,padB=24;
+    const X=t=>padL+(t/T)*(w-padL-padR);
+    const Y=v=>padT+(1-v)*(h-padT-padB);
+    g.strokeStyle=COLOR.grid;g.lineWidth=1;g.fillStyle=COLOR.muted;g.font=`9px ${FONT_MONO}`;
+    for(let t=0;t<=T;t+=Math.max(0.25,T/6)){
+      g.beginPath();g.moveTo(X(t),Y(0));g.lineTo(X(t),Y(1));g.stroke();
+      g.textAlign='center';g.fillText(t.toFixed(1)+'s',X(t),h-8);
+    }
+    // envelope
+    g.strokeStyle=COLOR.teal;g.lineWidth=2.6;
+    g.beginPath();
+    g.moveTo(X(0),Y(0));
+    g.lineTo(X(E.a),Y(1));
+    g.lineTo(X(E.a+E.d),Y(E.s));
+    g.lineTo(X(E.a+E.d+hold),Y(E.s));
+    g.lineTo(X(E.a+E.d+hold+E.r),Y(0));
+    g.stroke();
+    g.lineTo(X(0),Y(0));g.closePath();
+    g.fillStyle='rgba(30,133,122,0.12)';g.fill();
+    // note-off marker
+    g.setLineDash([4,4]);g.strokeStyle=COLOR.amber;g.lineWidth=1.4;
+    g.beginPath();g.moveTo(X(E.a+E.d+hold),Y(0));g.lineTo(X(E.a+E.d+hold),Y(1));g.stroke();g.setLineDash([]);
+    g.fillStyle=COLOR.amberInk;g.textAlign='left';
+    g.fillText('note-off',X(E.a+E.d+hold)+4,Y(1)+10);
+    // labels
+    g.fillStyle=COLOR.muted;g.textAlign='center';
+    g.fillText('A',X(E.a/2),Y(0.5));
+    g.fillText('D',X(E.a+E.d/2),Y((1+E.s)/2));
+    g.fillText('S',X(E.a+E.d+hold/2),Y(E.s)-6);
+    g.fillText('R',X(E.a+E.d+hold+E.r/2),Y(0.3));
+  }
+  updateE();
+
+  // ================= 5: FM =================
+  const FM={fc:220,ratio:2,idx:3,on:false,car:null,mod:null,modG:null};
+  const cvF=reg('cvFm');
+  const fact=[1];for(let i=1;i<40;i++)fact[i]=fact[i-1]*i;
+  function J(n,x){
+    let s=0;
+    for(let m=0;m<25;m++){
+      s+=Math.pow(-1,m)/(fact[m]*fact[m+n])*Math.pow(x/2,2*m+n);
+    }
+    return s;
+  }
+  function updateF(){
+    const fm=FM.fc*FM.ratio,dev=FM.idx*fm;
+    setText('fCVal',FM.fc+' Hz');
+    setText('fRVal',FM.ratio.toFixed(1));
+    setText('fIVal',FM.idx.toFixed(1));
+    setText('fFm',fmtF(fm));
+    setText('fDev',fmtF(dev));
+    setText('fBw',fmtF(2*(dev+fm)));
+    if(FM.car){setParam(FM.car.frequency,FM.fc);}
+    if(FM.mod){setParam(FM.mod.frequency,fm);}
+    if(FM.modG){setParam(FM.modG.gain,dev);}
+  }
+  on('fC','input',e=>{FM.fc=+e.target.value;updateF();});
+  on('fR','input',e=>{FM.ratio=+e.target.value;updateF();});
+  on('fI','input',e=>{FM.idx=+e.target.value;updateF();});
+  on('fPlay','click',()=>FM.on?stopF():playF());
+  function playF(){
+    ensureAudio();ctx.resume();stopAll();
+    const fm=FM.fc*FM.ratio,dev=FM.idx*fm;
+    FM.car=ctx.createOscillator();FM.car.type='sine';FM.car.frequency.value=FM.fc;
+    FM.mod=ctx.createOscillator();FM.mod.type='sine';FM.mod.frequency.value=fm;
+    FM.modG=ctx.createGain();FM.modG.gain.value=dev;
+    FM.mod.connect(FM.modG);FM.modG.connect(FM.car.frequency);
+    const g=ctx.createGain();g.gain.value=0.2;
+    FM.car.connect(g);g.connect(masterGain);
+    FM.mod.start();FM.car.start();FM.on=true;
+    const b=$('fPlay');if(b){b.textContent='■ Stop';b.classList.add('playing');}
+  }
+  function stopF(){
+    [FM.car,FM.mod].forEach(o=>{if(o){try{o.stop();}catch(e){}o.disconnect();}});
+    if(FM.modG)FM.modG.disconnect();
+    FM.on=false;FM.car=null;
+    const b=$('fPlay');if(b){b.textContent='▶ Play';b.classList.remove('playing');}
+  }
+  function drawF(){
+    if(!cvF.ctx)return;
+    clear(cvF);
+    const g=cvF.ctx,w=cvF.w,h=cvF.h;
+    const mid=Math.floor(w*0.44);
+    g.strokeStyle=COLOR.rim;g.lineWidth=1;
+    g.beginPath();g.moveTo(mid,10);g.lineTo(mid,h-16);g.stroke();
+    const fm=FM.fc*FM.ratio;
+    drawWave(g,10,10,mid-20,h-26,t=>{
+      const tt=t*3/FM.fc;
+      return Math.sin(2*Math.PI*FM.fc*tt+FM.idx*Math.sin(2*Math.PI*fm*tt))*0.9;
+    },COLOR.teal);
+    // sidebands k=-8..8
+    const K=8;
+    const bw=(mid-20)/(2*K+1);
+    for(let k=-K;k<=K;k++){
+      const a=Math.abs(J(Math.abs(k),FM.idx));
+      if(a<=0.01)continue;
+      const x=mid+6+(k+K)*((w-mid-16)/(2*K+1));
+      g.fillStyle=k===0?COLOR.amber:'rgba(30,133,122,0.7)';
+      g.fillRect(x-bw*0.22,(h-26)-a*(h-40)+10,bw*0.44,a*(h-40));
+    }
+    g.fillStyle=COLOR.muted;g.font=`8px ${FONT_MONO}`;g.textAlign='center';
+    g.fillText('fc',mid+6+K*((w-mid-16)/(2*K+1)),h-8);
+  }
+  updateF();
+
+  // ---------------- tabs / loop ----------------
+  function stopAll(){
+    if(O.on)stopO();
+    if(A.on)stopA();
+    if(S.on)stopS();
+    if(FM.on)stopF();
+  }
+  const tabButtons=document.querySelectorAll('.tab-btn');
+  tabButtons.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      stopAll();
+      tabButtons.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      const panel=$('panel-'+btn.dataset.tab);
+      if(panel)panel.classList.add('active');
+      activeTab=btn.dataset.tab;
+      canvases.forEach(resizeOne);
+      setTimeout(()=>canvases.forEach(resizeOne),50);
+    });
+  });
+  function loop(){
+    if(activeTab==='osc')drawO();
+    else if(activeTab==='add')drawA();
+    else if(activeTab==='sub')drawS();
+    else if(activeTab==='adsr')drawE();
+    else if(activeTab==='fm')drawF();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
